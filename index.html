@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Builder Pro - 스마트 맞춤 PC 견적 & 성능 측정</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font (Inter & Noto Sans KR) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            900: '#090d16',
+                            800: '#111827',
+                            700: '#1f2937',
+                            600: '#374151'
+                        },
+                        brand: {
+                            blue: '#3b82f6',
+                            purple: '#8b5cf6',
+                            cyan: '#06b6d4',
+                            accent: '#6366f1',
+                            used: '#f59e0b'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans KR', 'Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-dark-900 text-gray-100 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-blue selection:text-white">
+
+    <!-- Header & Navigation -->
+    <header class="bg-dark-800/80 backdrop-blur-md border-b border-dark-700 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="resetToHome()">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-blue to-brand-purple flex items-center justify-center shadow-lg shadow-brand-blue/30">
+                        <i class="fa-solid fa-microchip text-xl text-white"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-bold tracking-tight gradient-text">PC BUILDER</span>
+                        <span class="text-xs text-brand-cyan font-semibold block -mt-1 font-mono">BENCHMARK LAB</span>
+                    </div>
+                </div>
+
+                <!-- Action Toolbar Header -->
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <!-- Toggle Used Mode -->
+                    <button id="used-mode-toggle" onclick="toggleUsedMode()" class="px-3 py-2 text-xs sm:text-sm bg-dark-700 hover:bg-amber-900/40 border border-dark-600 rounded-lg text-gray-300 font-medium transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-recycle text-brand-used"></i>
+                        <span>중고가 모드</span>
+                        <span id="used-badge" class="text-[10px] px-1.5 py-0.2 rounded bg-gray-800 text-gray-400 font-bold">OFF</span>
+                    </button>
+                    
+                    <button onclick="openComboVSModal()" class="px-3 py-2 text-xs sm:text-sm bg-dark-700 hover:bg-brand-cyan/20 border border-dark-600 rounded-lg text-brand-cyan font-medium transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                        <span>TechCity 스타일 1:1 대조</span>
+                    </button>
+
+                    <button onclick="openModal('recommend-modal')" class="px-3 py-2 text-xs sm:text-sm bg-gradient-to-r from-brand-blue/20 to-brand-purple/20 hover:from-brand-blue/30 hover:to-brand-purple/30 border border-brand-blue/40 rounded-lg text-brand-blue font-medium transition flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-brand-purple"></i>
+                        <span class="hidden sm:inline">추천 견적</span>
+                    </button>
+                    <button onclick="resetEstimate()" class="px-3 py-2 text-xs sm:text-sm bg-dark-700 hover:bg-gray-700 text-gray-300 rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span class="hidden sm:inline">초기화</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+
+        <!-- Notice & Budget Set Banner -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- Notice Banner -->
+            <div class="lg:col-span-2 bg-gradient-to-r from-dark-800 to-dark-800/90 p-5 rounded-2xl border border-dark-700 relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-brand-blue/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div>
+                    <div class="flex items-center gap-2 text-brand-cyan text-xs font-semibold uppercase tracking-wider mb-1">
+                        <i class="fa-solid fa-chart-line"></i> Technical City Style Benchmark Integration
+                    </div>
+                    <h1 class="text-xl sm:text-2xl font-bold text-white mb-2">CPU · GPU 정밀 분리 벤치마크 & 1:1 스펙 대조 분석</h1>
+                    <p class="text-xs sm:text-sm text-gray-400 leading-relaxed">
+                        부품 점수를 단순히 합산하지 않고 CPU 연산 벤치마크(PassMark/Geekbench 렌더 지수)와 GPU 그래픽 벤치마크(3DMark TimeSpy)를 **개별적으로 독립 평가**하여 기기간 세부 대조가 가능합니다.
+                    </p>
+                </div>
+                <div class="mt-4 flex flex-wrap gap-2 text-xs text-gray-400">
+                    <span class="bg-dark-900/80 px-2.5 py-1 rounded-md border border-dark-700"><i class="fa-solid fa-microchip text-brand-blue mr-1"></i> CPU 독립 벤치마크</span>
+                    <span class="bg-dark-900/80 px-2.5 py-1 rounded-md border border-dark-700"><i class="fa-solid fa-tv text-brand-purple mr-1"></i> GPU 3DMark 타임스파이 연동</span>
+                    <span class="bg-dark-900/80 px-2.5 py-1 rounded-md border border-dark-700"><i class="fa-solid fa-code-compare text-brand-cyan mr-1"></i> 부품 단위 다각도 1:1 비교</span>
+                </div>
+            </div>
+
+            <!-- Budget Tracker Card -->
+            <div class="bg-dark-800 p-5 rounded-2xl border border-dark-700 flex flex-col justify-between shadow-xl">
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label for="budget-input" class="text-sm font-semibold text-gray-300 flex items-center gap-2">
+                            <i class="fa-solid fa-wallet text-brand-purple"></i> 목표 예산 설정
+                        </label>
+                        <span id="budget-status-tag" class="text-xs px-2 py-0.5 rounded font-medium bg-gray-700 text-gray-300">미설정</span>
+                    </div>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">₩</span>
+                        <input type="number" id="budget-input" placeholder="예산 입력 (예: 1500000)" 
+                            oninput="renderSelectedSummary()"
+                            class="w-full bg-dark-900 border border-dark-700 rounded-xl pl-8 pr-4 py-2 text-white font-semibold focus:outline-none focus:border-brand-blue transition">
+                    </div>
+                    <!-- Auto Build Generator Button based on Budget -->
+                    <button onclick="autoBuildByBudget()" class="w-full mt-2 py-2 px-3 bg-gradient-to-r from-brand-blue/30 to-brand-purple/30 hover:from-brand-blue/50 hover:to-brand-purple/50 border border-brand-blue/40 rounded-xl text-xs font-bold text-white transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-brand-cyan"></i>
+                        <span>⚡ 입력한 예산으로 자동 견적 맞추기</span>
+                    </button>
+                </div>
+
+                <div class="mt-4 space-y-2">
+                    <div class="flex justify-between text-xs text-gray-400">
+                        <span>예산 소진율</span>
+                        <span id="budget-percent-text">0%</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-dark-900 rounded-full overflow-hidden border border-dark-700">
+                        <div id="budget-progress-bar" class="h-full bg-brand-blue transition-all duration-300 w-0"></div>
+                    </div>
+                    <div class="flex justify-between items-center text-xs pt-1">
+                        <span class="text-gray-400">잔여 예산:</span>
+                        <span id="budget-remaining-text" class="font-semibold text-gray-200">₩ 0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Software & Game Performance Simulator Panel -->
+        <div class="bg-dark-800 rounded-2xl border border-dark-700 p-5 mb-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-dark-700 pb-3 mb-4 gap-2">
+                <div>
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-gauge-high text-brand-cyan"></i> 실시간 소프트웨어/게임 요구사양 진단기
+                    </h3>
+                    <p class="text-xs text-gray-400">독립된 CPU 수치와 GPU 3DMark 수치를 각각 요구 성능 기준치와 대조하여 구동 등급을 결정합니다.</p>
+                </div>
+                <div class="flex items-center gap-4 text-xs font-mono">
+                    <div class="bg-dark-900 px-3 py-1.5 rounded-lg border border-dark-700">
+                        <span class="text-gray-400">CPU 벤치: </span>
+                        <span id="total-cpu-score" class="font-bold text-brand-blue">0 Pts</span>
+                    </div>
+                    <div class="bg-dark-900 px-3 py-1.5 rounded-lg border border-dark-700">
+                        <span class="text-gray-400">GPU 벤치: </span>
+                        <span id="total-gpu-score" class="font-bold text-brand-purple">0 Pts</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Software Performance Cards Grid -->
+            <div id="software-estimator-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <!-- Generated dynamically by JS -->
+            </div>
+        </div>
+
+        <!-- Main Workspace Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- LEFT 7 COLUMNS: Parts Selector -->
+            <div class="lg:col-span-7 space-y-4">
+                
+                <!-- Category Tabs Navigation -->
+                <div class="flex space-x-2 overflow-x-auto pb-2 scrollbar-none border-b border-dark-700" id="category-tabs">
+                    <!-- Dynamic Tabs -->
+                </div>
+
+                <!-- Filter & Search & CPU Tier Filter Tool -->
+                <div class="flex flex-col sm:flex-row gap-3 items-center justify-between bg-dark-800 p-3 rounded-xl border border-dark-700">
+                    <div class="relative w-full sm:w-56">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+                        <input type="text" id="parts-search" placeholder="부품명/제조사 검색..." oninput="filterPartsList()"
+                            class="w-full bg-dark-900 border border-dark-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-brand-blue">
+                    </div>
+
+                    <!-- CPU Performance Tier Filter -->
+                    <div id="cpu-tier-filter-box" class="flex items-center gap-1 bg-dark-900 p-1 rounded-lg border border-dark-700 text-[11px] w-full sm:w-auto overflow-x-auto">
+                        <span class="text-gray-400 px-1 font-semibold">성능등급:</span>
+                        <button onclick="setCpuTier('all')" id="tier-btn-all" class="px-2 py-0.5 rounded font-medium bg-brand-blue text-white">전체</button>
+                        <button onclick="setCpuTier('high')" id="tier-btn-high" class="px-2 py-0.5 rounded font-medium text-gray-400 hover:text-white">상위</button>
+                        <button onclick="setCpuTier('mid')" id="tier-btn-mid" class="px-2 py-0.5 rounded font-medium text-gray-400 hover:text-white">중위</button>
+                        <button onclick="setCpuTier('low')" id="tier-btn-low" class="px-2 py-0.5 rounded font-medium text-gray-400 hover:text-white">하위/입문</button>
+                    </div>
+
+                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end text-xs text-gray-400">
+                        <span>정렬:</span>
+                        <select id="parts-sort" onchange="filterPartsList()" class="bg-dark-900 border border-dark-700 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 focus:outline-none">
+                            <option value="benchmark-desc">성능 높은순 (독립 점수)</option>
+                            <option value="price-asc">낮은 가격순</option>
+                            <option value="price-desc">높은 가격순</option>
+                            <option value="name">이름순</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Parts Card Selector Grid -->
+                <div id="parts-list-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[580px] overflow-y-auto pr-1">
+                    <!-- Dynamic Content -->
+                </div>
+            </div>
+
+            <!-- RIGHT 5 COLUMNS: Selected Build Summary & Compatibility Check -->
+            <div class="lg:col-span-5 space-y-4">
+
+                <!-- Compatibility Alert Box -->
+                <div id="compatibility-alert-box" class="bg-dark-800 p-4 rounded-xl border border-dark-700 space-y-2">
+                    <div class="flex items-center justify-between border-b border-dark-700/60 pb-2">
+                        <span class="text-xs font-bold text-gray-300 flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-brand-blue"></i> 시스템 호환성 검사
+                        </span>
+                        <span id="compatibility-status-badge" class="px-2 py-0.5 rounded text-[11px] font-bold bg-green-500/20 text-green-400 border border-green-500/30">
+                            완벽 호환
+                        </span>
+                    </div>
+                    <div id="compatibility-messages" class="text-xs space-y-1 text-gray-300 pt-1">
+                        <!-- Compatibility Log Messages -->
+                    </div>
+                </div>
+
+                <!-- Selected Parts Checklist -->
+                <div class="bg-dark-800 rounded-2xl border border-dark-700 overflow-hidden shadow-xl flex flex-col">
+                    <div class="p-4 border-b border-dark-700 bg-dark-800/90 flex justify-between items-center">
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-brand-purple"></i> 선택된 부품 목록
+                        </h2>
+                        <span id="selected-count-badge" class="text-xs bg-brand-blue/20 text-brand-blue border border-brand-blue/30 px-2 py-0.5 rounded-full font-medium">0 / 9 선택됨</span>
+                    </div>
+
+                    <!-- Selected List Items -->
+                    <div id="selected-parts-list" class="p-4 space-y-2.5 max-h-[400px] overflow-y-auto divide-y divide-dark-700/50">
+                        <!-- Dynamic items -->
+                    </div>
+
+                    <!-- Price Total & Summary Box -->
+                    <div class="p-4 bg-dark-900 border-t border-dark-700 space-y-3">
+                        <div class="flex justify-between items-center text-xs text-gray-400 font-mono">
+                            <span>소비전력: <strong id="total-wattage" class="text-brand-cyan">0 W</strong></span>
+                            <span>CPU: <strong id="summary-cpu-score" class="text-brand-blue">0 Pts</strong> | GPU: <strong id="summary-gpu-score" class="text-brand-purple">0 Pts</strong></span>
+                        </div>
+                        <div class="flex justify-between items-baseline pt-1">
+                            <div>
+                                <span class="text-sm font-medium text-gray-300">총 견적 금액</span>
+                                <span id="used-mode-label" class="text-[10px] text-brand-used font-bold hidden block">※ 중고 가격 적용 중</span>
+                            </div>
+                            <div class="text-right">
+                                <span id="total-price" class="text-2xl font-black gradient-text">₩ 0</span>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="grid grid-cols-2 gap-2 pt-2">
+                            <button onclick="copyEstimateText()" class="w-full py-2.5 px-3 bg-dark-700 hover:bg-gray-700 text-xs font-semibold rounded-xl text-gray-200 transition flex items-center justify-center gap-2">
+                                <i class="fa-regular fa-copy"></i> 견적 복사
+                            </button>
+                            <button onclick="downloadEstimateTxt()" class="w-full py-2.5 px-3 bg-gradient-to-r from-brand-blue to-brand-purple hover:opacity-90 text-xs font-semibold rounded-xl text-white shadow-lg shadow-brand-blue/20 transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-download"></i> 텍스트 저장
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Hardware Specifications Comparison Table -->
+        <div class="mt-10 bg-dark-800 rounded-2xl border border-dark-700 p-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div>
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-microchip text-brand-cyan"></i> 선택 부품 정밀 specs & Technical City 벤치마크 지수
+                    </h3>
+                    <p class="text-xs text-gray-400 mt-1">CPU와 GPU를 합산하지 않고 독립적인 성능 지표(Passing Mark / 3DMark TimeSpy)로 표현합니다.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="comparison-section">
+                <!-- CPU Specs Box -->
+                <div class="bg-dark-900/80 p-4 rounded-xl border border-dark-700">
+                    <div class="flex items-center justify-between text-brand-blue font-bold text-sm mb-3 border-b border-dark-700 pb-2">
+                        <span><i class="fa-solid fa-microchip mr-1"></i> 선택 CPU 연산 지수</span>
+                        <span id="cpu-score-badge" class="text-xs px-2 py-0.5 rounded bg-brand-blue/20 text-brand-blue font-mono">PassMark: 0 Pts</span>
+                    </div>
+                    <div id="cpu-comparison-body" class="text-xs space-y-2 text-gray-300">
+                        <p class="text-gray-500 italic">CPU가 선택되지 않았습니다.</p>
+                    </div>
+                </div>
+
+                <!-- GPU Specs Box -->
+                <div class="bg-dark-900/80 p-4 rounded-xl border border-dark-700">
+                    <div class="flex items-center justify-between text-brand-purple font-bold text-sm mb-3 border-b border-dark-700 pb-2">
+                        <span><i class="fa-solid fa-tv mr-1"></i> 선택 GPU 3DMark 지수</span>
+                        <span id="gpu-score-badge" class="text-xs px-2 py-0.5 rounded bg-brand-purple/20 text-brand-purple font-mono">TimeSpy: 0 Pts</span>
+                    </div>
+                    <div id="gpu-comparison-body" class="text-xs space-y-2 text-gray-300">
+                        <p class="text-gray-500 italic">그래픽카드가 선택되지 않았습니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL 1: Preset Recommendation Modal -->
+    <div id="recommend-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-dark-800 border border-dark-700 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
+            <div class="p-5 border-b border-dark-700 flex justify-between items-center bg-dark-900">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-brand-purple"></i> 용도별 추천 PC 견적
+                </h3>
+                <button onclick="closeModal('recommend-modal')" class="text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+                <!-- Preset Cards -->
+                <div onclick="applyRecommendPreset('office')" class="bg-dark-900 p-4 rounded-xl border border-dark-700 hover:border-brand-blue cursor-pointer transition flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-brand-cyan">사무 / 웹서핑용</span>
+                        <h4 class="font-bold text-white text-base">사무 & 웹서핑 가성비 PC (약 35~45만원)</h4>
+                        <p class="text-xs text-gray-400 mt-1">i3-14100F + 내장/기본 그래픽 + DDR4 16GB + NVMe 500GB</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-500"></i>
+                </div>
+
+                <div onclick="applyRecommendPreset('mid_online')" class="bg-dark-900 p-4 rounded-xl border border-dark-700 hover:border-brand-blue cursor-pointer transition flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-emerald-400">중사양 온라인 게임용</span>
+                        <h4 class="font-bold text-white text-base">옵치2 / 철권8 / 데바데 / 델타포스 PC (약 75~85만원)</h4>
+                        <p class="text-xs text-gray-400 mt-1">i5-12400F + GTX 1660 SUPER + DDR4 16GB + 600W</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-500"></i>
+                </div>
+
+                <div onclick="applyRecommendPreset('gaming_1080p')" class="bg-dark-900 p-4 rounded-xl border border-dark-700 hover:border-brand-blue cursor-pointer transition flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-brand-blue">국민 FHD AAA 게이밍용</span>
+                        <h4 class="font-bold text-white text-base">배틀그라운드 & 스팀 FHD PC (약 110~130만원)</h4>
+                        <p class="text-xs text-gray-400 mt-1">Ryzen 5 7500F + RTX 4060 8GB + DDR5 32GB</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-500"></i>
+                </div>
+
+                <div onclick="applyRecommendPreset('gaming_4k')" class="bg-dark-900 p-4 rounded-xl border border-dark-700 hover:border-brand-blue cursor-pointer transition flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-brand-purple">4K 고주사율 게이밍용</span>
+                        <h4 class="font-bold text-white text-base">4K 스팀 AAA 쾌적 PC (약 210~240만원)</h4>
+                        <p class="text-xs text-gray-400 mt-1">Ryzen 7 7800X3D + RTX 4070 Ti SUPER + DDR5 32GB</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-500"></i>
+                </div>
+
+                <div onclick="applyRecommendPreset('ultimate')" class="bg-dark-900 p-4 rounded-xl border border-dark-700 hover:border-brand-blue cursor-pointer transition flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-amber-400">플래그십 종결 4K 게이밍</span>
+                        <h4 class="font-bold text-white text-base">울트라 프레임 종결 PC (약 400만원대)</h4>
+                        <p class="text-xs text-gray-400 mt-1">Ryzen 7 7800X3D + RTX 4090 24GB + DDR5 64GB</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-500"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Technical City Style Combination 1:1 Detailed Comparison Modal -->
+    <div id="combo-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-dark-800 border border-dark-700 w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-5 border-b border-dark-700 flex justify-between items-center bg-dark-900">
+                <div>
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-scale-balanced text-brand-cyan"></i> TechCity 스타일 조합 대 조합(Custom A vs B) 세부 비교
+                    </h3>
+                    <p class="text-xs text-gray-400">레퍼런스 프리셋뿐만 아니라, 내가 직접 구성한 커스텀 조합 2개를 1:1로 자유롭게 대조할 수 있습니다.</p>
+                </div>
+                <button onclick="closeModal('combo-modal')" class="text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-6 overflow-y-auto">
+                <!-- Select Target Combo B & Custom Slot Controls -->
+                <div class="bg-dark-900 p-4 rounded-xl border border-dark-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs text-brand-cyan font-bold uppercase tracking-wider block mb-1">비교 대상 (조합 B) 선택 및 커스텀 설정</span>
+                        <p class="text-xs text-gray-400">현재 내 견적을 [조합 B 저장]으로 보관한 뒤 새로운 견적을 짜면 1:1 비교가 가능합니다.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="saveCurrentBuildToCustomB()" class="px-3 py-1.5 bg-brand-purple/20 hover:bg-brand-purple/30 border border-brand-purple/40 text-brand-purple text-xs font-bold rounded-lg transition">
+                            <i class="fa-solid fa-bookmark mr-1"></i> 현재 견적을 조합 B로 저장
+                        </button>
+                        <select id="combo-b-preset-select" onchange="updateComboVSComparison()" class="bg-dark-800 border border-dark-700 rounded-xl px-4 py-2 text-xs text-white font-medium focus:outline-none focus:border-brand-purple">
+                            <option value="custom">★ 내 저장 커스텀 조합 B</option>
+                            <option value="entry">가성비 입문 (i5-12400F + GTX 1650)</option>
+                            <option value="mainstream" selected>인기 게이밍 (R5 7500F + RTX 4070S)</option>
+                            <option value="high-editing">영상편집/3D (i7-14700K + RTX 4070S)</option>
+                            <option value="ultimate">종결 하이엔드 (R7 7800X3D + RTX 4090)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 1:1 Metric Comparisons Grid (Technical City Style) -->
+                <div class="space-y-4">
+                    <!-- Metric 1: CPU Score Comparison -->
+                    <div class="bg-dark-900 p-4 rounded-xl border border-dark-700">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-bold text-brand-blue flex items-center gap-1.5">
+                                <i class="fa-solid fa-microchip"></i> CPU 연산 성능 벤치마크 (PassMark)
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <span id="metric-cpu-pct-diff" class="text-xs font-bold text-brand-cyan"></span>
+                                <span id="metric-cpu-winner" class="text-xs font-bold px-2 py-0.5 rounded bg-brand-blue/20 text-brand-blue">A 우세</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2 text-xs">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span id="metric-cpu-a-name" class="text-gray-300">조합 A CPU</span>
+                                    <span id="metric-cpu-a-val" class="font-mono font-bold text-brand-blue">0 Pts</span>
+                                </div>
+                                <div class="w-full h-3 bg-dark-800 rounded-full overflow-hidden border border-dark-700">
+                                    <div id="metric-cpu-a-bar" class="h-full bg-brand-blue transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span id="metric-cpu-b-name" class="text-gray-300">조합 B CPU</span>
+                                    <span id="metric-cpu-b-val" class="font-mono font-bold text-brand-purple">0 Pts</span>
+                                </div>
+                                <div class="w-full h-3 bg-dark-800 rounded-full overflow-hidden border border-dark-700">
+                                    <div id="metric-cpu-b-bar" class="h-full bg-brand-purple transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metric 2: GPU Score Comparison -->
+                    <div class="bg-dark-900 p-4 rounded-xl border border-dark-700">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-bold text-brand-purple flex items-center gap-1.5">
+                                <i class="fa-solid fa-tv"></i> GPU 그래픽 벤치마크 (3DMark TimeSpy)
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <span id="metric-gpu-pct-diff" class="text-xs font-bold text-brand-cyan"></span>
+                                <span id="metric-gpu-winner" class="text-xs font-bold px-2 py-0.5 rounded bg-brand-purple/20 text-brand-purple">B 우세</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2 text-xs">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span id="metric-gpu-a-name" class="text-gray-300">조합 A GPU</span>
+                                    <span id="metric-gpu-a-val" class="font-mono font-bold text-brand-blue">0 Pts</span>
+                                </div>
+                                <div class="w-full h-3 bg-dark-800 rounded-full overflow-hidden border border-dark-700">
+                                    <div id="metric-gpu-a-bar" class="h-full bg-brand-blue transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span id="metric-gpu-b-name" class="text-gray-300">조합 B GPU</span>
+                                    <span id="metric-gpu-b-val" class="font-mono font-bold text-brand-purple">0 Pts</span>
+                                </div>
+                                <div class="w-full h-3 bg-dark-800 rounded-full overflow-hidden border border-dark-700">
+                                    <div id="metric-gpu-b-bar" class="h-full bg-brand-purple transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metric 3: Total Price Comparison -->
+                    <div class="bg-dark-900 p-4 rounded-xl border border-dark-700">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-bold text-brand-cyan flex items-center gap-1.5">
+                                <i class="fa-solid fa-wallet"></i> 전체 견적 가격 대조 (₩)
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <span id="metric-price-pct-diff" class="text-xs font-bold text-brand-cyan"></span>
+                                <span id="metric-price-winner" class="text-xs font-bold px-2 py-0.5 rounded bg-green-500/20 text-green-400">A가 더 저렴</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 text-center text-xs">
+                            <div class="bg-dark-800 p-3 rounded-lg border border-dark-700">
+                                <span class="text-gray-400 block mb-1">조합 A (내 견적) 총액</span>
+                                <span id="metric-price-a" class="text-base font-black text-white font-mono">₩ 0</span>
+                            </div>
+                            <div class="bg-dark-800 p-3 rounded-lg border border-dark-700">
+                                <span class="text-gray-400 block mb-1">조합 B (비교 대상) 총액</span>
+                                <span id="metric-price-b" class="text-base font-black text-white font-mono">₩ 0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Component Item List Side-by-Side Table -->
+                <div class="bg-dark-900 rounded-xl border border-dark-700 overflow-hidden">
+                    <div class="p-3 bg-dark-800 text-xs font-bold text-gray-300 border-b border-dark-700 flex justify-between">
+                        <span>전체 부품 구성 대조표</span>
+                        <span class="text-gray-400 font-normal">조합 A (왼쪽) vs 조합 B (오른쪽)</span>
+                    </div>
+                    <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6 text-xs" id="combo-full-spec-table">
+                        <div>
+                            <h5 class="font-bold text-brand-blue mb-2 pb-1 border-b border-dark-700">조합 A (내 견적)</h5>
+                            <div id="combo-a-details" class="space-y-1.5 text-gray-300"></div>
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-brand-purple mb-2 pb-1 border-b border-dark-700">조합 B (비교 대상)</h5>
+                            <div id="combo-b-details" class="space-y-1.5 text-gray-300"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analysis Summary Box -->
+                <div class="bg-dark-900 border border-dark-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+                    <div class="space-y-1">
+                        <div class="font-bold text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-chart-pie text-brand-cyan"></i> TechCity 대조 총평
+                        </div>
+                        <p id="combo-vs-result-msg" class="text-gray-400">부품별 성능 차이를 비교 분석 중입니다.</p>
+                    </div>
+                    <button onclick="applyComboBToCurrent()" class="px-4 py-2.5 bg-gradient-to-r from-brand-blue to-brand-purple text-white font-bold rounded-xl hover:opacity-90 transition whitespace-nowrap shadow-md">
+                        조합 B를 내 견적으로 적용하기
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 bg-dark-900 border-t border-dark-700 text-right">
+                <button onclick="closeModal('combo-modal')" class="px-4 py-2 bg-dark-700 text-xs font-medium text-gray-300 rounded-lg hover:bg-gray-700">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Part Specs Detail Modal -->
+    <div id="detail-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-dark-800 border border-dark-700 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
+            <div class="p-5 border-b border-dark-700 flex justify-between items-center bg-dark-900">
+                <h3 id="modal-part-name" class="text-base font-bold text-white">부품 상세정보</h3>
+                <button onclick="closeModal('detail-modal')" class="text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex items-center space-x-4">
+                    <div id="modal-part-icon" class="w-16 h-16 rounded-xl bg-dark-900 flex items-center justify-center text-3xl text-brand-blue border border-dark-700"></div>
+                    <div>
+                        <span id="modal-part-brand" class="text-xs font-semibold px-2 py-0.5 rounded bg-brand-blue/20 text-brand-blue">브랜드</span>
+                        <h4 id="modal-part-title" class="text-lg font-bold text-white mt-1">제품명</h4>
+                        <div class="flex items-center gap-2 mt-1">
+                            <p id="modal-part-price" class="text-brand-cyan font-bold text-base">₩ 0</p>
+                            <span id="modal-part-used-price" class="text-xs font-semibold text-brand-used bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded hidden">중고 ₩ 0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-dark-900 p-4 rounded-xl border border-dark-700 space-y-2 text-xs">
+                    <h5 class="font-bold text-gray-300 border-b border-dark-700 pb-1">상세 사양 & 독립 벤치마크 (Specs & Benchmark)</h5>
+                    <div id="modal-part-specs" class="space-y-1.5 text-gray-300">
+                        <!-- Dynamic details -->
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 bg-dark-900 border-t border-dark-700 flex justify-end gap-2">
+                <button id="modal-select-btn" class="px-4 py-2 bg-gradient-to-r from-brand-blue to-brand-purple text-xs font-semibold text-white rounded-lg hover:opacity-90">이 부품 선택하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast-msg" class="fixed bottom-5 right-5 bg-brand-blue text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 opacity-0 transform translate-y-4 pointer-events-none z-50 flex items-center gap-2">
+        <i class="fa-solid fa-circle-check"></i> <span id="toast-text">메시지</span>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        const CATEGORIES = [
+            { id: 'cpu', name: 'CPU', icon: 'fa-microchip' },
+            { id: 'motherboard', name: '메인보드', icon: 'fa-border-all' },
+            { id: 'ram', name: 'RAM (메모리)', icon: 'fa-memory' },
+            { id: 'gpu', name: '그래픽카드', icon: 'fa-tv' },
+            { id: 'ssd', name: 'SSD (저장장치)', icon: 'fa-hard-drive' },
+            { id: 'hdd', name: 'HDD (보조저장)', icon: 'fa-database' },
+            { id: 'cooler', name: '쿨러/수랭', icon: 'fa-fan' },
+            { id: 'psu', name: '파워서플라이', icon: 'fa-plug' },
+            { id: 'case', name: '케이스', icon: 'fa-box' }
+        ];
+
+        const SOFTWARE_BENCHMARKS = [
+            { id: 'office', name: '문서/웹서핑', icon: 'fa-file-lines', reqCpuScore: 5000, reqGpuScore: 1000 },
+            { id: 'lol', name: '중하위 온라인 (롤/발로란트)', icon: 'fa-gamepad', reqCpuScore: 10000, reqGpuScore: 3000 },
+            { id: 'mid_online', name: '중사양 온라인 (옵치2/데바데/철권8/델타포스)', icon: 'fa-shield-halved', reqCpuScore: 16000, reqGpuScore: 7500 },
+            { id: 'pubg_1080p', name: '배틀그라운드 & 스팀 AAA (1080p FHD)', icon: 'fa-crosshair', reqCpuScore: 20000, reqGpuScore: 11000 },
+            { id: 'aaa_4k', name: '스팀 AAA 최고옵션 (4K UHD)', icon: 'fa-vr-cardboard', reqCpuScore: 32000, reqGpuScore: 26000 },
+            { id: 'premiere', name: '4K 영상편집', icon: 'fa-film', reqCpuScore: 30000, reqGpuScore: 14000 },
+            { id: 'ai', name: '3D 렌더링 / AI', icon: 'fa-brain', reqCpuScore: 40000, reqGpuScore: 26000 }
+        ];
+
+        // PassMark (CPU) & 3DMark TimeSpy (GPU) real-world scores (Refined to Technical City relative scale)
+        const PARTS_DATABASE = {
+            cpu: [
+                // HIGH TIER (PassMark Scale / Technical City Performance Index)
+                { id: 'cpu-h0-1', tier: 'high', name: 'AMD 라이젠9-5세대 9950X', price: 980000, usedPrice: 720000, cpuScore: 66300, brand: 'AMD', socket: 'AM5', tdp: 170, cores: '16코어', threads: '32스레드', clock: '4.3GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h0-2ks', tier: 'high', name: '인텔 코어i9-14세대 14900KS', price: 990000, usedPrice: 710000, cpuScore: 62400, brand: 'Intel', socket: 'LGA1700', tdp: 150, cores: '24코어', threads: '32스레드', clock: '3.2GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h1', tier: 'high', name: 'AMD 라이젠9-5세대 7950X3D', price: 920000, usedPrice: 650000, cpuScore: 62100, brand: 'AMD', socket: 'AM5', tdp: 120, cores: '16코어', threads: '32스레드', clock: '4.2GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h1-7950x', tier: 'high', name: 'AMD 라이젠9-5세대 7950X', price: 790000, usedPrice: 560000, cpuScore: 63100, brand: 'AMD', socket: 'AM5', tdp: 170, cores: '16코어', threads: '32스레드', clock: '4.5GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h2', tier: 'high', name: '인텔 코어i9-14세대 14900K', price: 830000, usedPrice: 580000, cpuScore: 60200, brand: 'Intel', socket: 'LGA1700', tdp: 125, cores: '24코어', threads: '32스레드', clock: '3.2GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h2-14900kf', tier: 'high', name: '인텔 코어i9-14세대 14900KF', price: 790000, usedPrice: 550000, cpuScore: 59800, brand: 'Intel', socket: 'LGA1700', tdp: 125, cores: '24코어', threads: '32스레드', clock: '3.2GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h0-2', tier: 'high', name: '인텔 코어i9-13세대 13900K', price: 760000, usedPrice: 530000, cpuScore: 57900, brand: 'Intel', socket: 'LGA1700', tdp: 125, cores: '24코어', threads: '32스레드', clock: '3.0GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h0-9900x', tier: 'high', name: 'AMD 라이젠9-5세대 9900X', price: 720000, usedPrice: 540000, cpuScore: 53800, brand: 'AMD', socket: 'AM5', tdp: 120, cores: '12코어', threads: '24스레드', clock: '4.4GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h4', tier: 'high', name: '인텔 코어i7-14세대 14700K', price: 530000, usedPrice: 370000, cpuScore: 53200, brand: 'Intel', socket: 'LGA1700', tdp: 125, cores: '20코어', threads: '28스레드', clock: '3.4GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h4-kf', tier: 'high', name: '인텔 코어i7-14세대 14700KF', price: 495000, usedPrice: 345000, cpuScore: 52700, brand: 'Intel', socket: 'LGA1700', tdp: 125, cores: '20코어', threads: '28스레드', clock: '3.4GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h5', tier: 'high', name: 'AMD 라이젠9-5세대 7900X', price: 560000, usedPrice: 390000, cpuScore: 51400, brand: 'AMD', socket: 'AM5', tdp: 170, cores: '12코어', threads: '24스레드', clock: '4.7GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h5-79003d', tier: 'high', name: 'AMD 라이젠9-5세대 7900X3D', price: 610000, usedPrice: 430000, cpuScore: 50800, brand: 'AMD', socket: 'AM5', tdp: 120, cores: '12코어', threads: '24스레드', clock: '4.4GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h6', tier: 'high', name: '인텔 코어i7-13세대 13700K', price: 470000, usedPrice: 330000, cpuScore: 46200, brand: 'Intel', socket: 'LGA1700', tdp: 125, cores: '16코어', threads: '24스레드', clock: '3.4GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h2-9800x3d', tier: 'high', name: 'AMD 라이젠7-5세대 9800X3D', price: 740000, usedPrice: 580000, cpuScore: 43200, brand: 'AMD', socket: 'AM5', tdp: 120, cores: '8코어', threads: '16스레드', clock: '4.7GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h0-3', tier: 'high', name: 'AMD 라이젠7-5세대 9700X', price: 490000, usedPrice: 360000, cpuScore: 36800, brand: 'AMD', socket: 'AM5', tdp: 65, cores: '8코어', threads: '16스레드', clock: '3.8GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h7', tier: 'high', name: 'AMD 라이젠7-5세대 7700X', price: 410000, usedPrice: 280000, cpuScore: 35900, brand: 'AMD', socket: 'AM5', tdp: 105, cores: '8코어', threads: '16스레드', clock: '4.5GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h7-7700', tier: 'high', name: 'AMD 라이젠7-5세대 7700', price: 360000, usedPrice: 250000, cpuScore: 34500, brand: 'AMD', socket: 'AM5', tdp: 65, cores: '8코어', threads: '16스레드', clock: '3.8GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h3', tier: 'high', name: 'AMD 라이젠7-5세대 7800X3D', price: 585000, usedPrice: 420000, cpuScore: 34100, brand: 'AMD', socket: 'AM5', tdp: 120, cores: '8코어', threads: '16스레드', clock: '4.2GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h8', tier: 'high', name: '인텔 코어i7-12세대 12700K', price: 380000, usedPrice: 250000, cpuScore: 34200, brand: 'Intel', socket: 'LGA1700', tdp: 125, cores: '12코어', threads: '20스레드', clock: '3.6GHz', icon: 'fa-microchip' },
+                { id: 'cpu-h9-12700f', tier: 'high', name: '인텔 코어i7-12세대 12700F', price: 310000, usedPrice: 210000, cpuScore: 31100, brand: 'Intel', socket: 'LGA1700', tdp: 65, cores: '12코어', threads: '20스레드', clock: '2.1GHz', icon: 'fa-microchip' },
+
+                // MID TIER
+                { id: 'cpu-m1', tier: 'mid', name: '인텔 코어i5-14세대 14600KF', price: 370000, usedPrice: 260000, cpuScore: 38900, brand: 'Intel', socket: 'LGA1700', tdp: 125, cores: '14코어', threads: '20스레드', clock: '3.5GHz', icon: 'fa-microchip' },
+                { id: 'cpu-m0-2', tier: 'mid', name: '인텔 코어i5-13세대 13600K', price: 390000, usedPrice: 270000, cpuScore: 37800, brand: 'Intel', socket: 'LGA1700', tdp: 125, cores: '14코어', threads: '20스레드', clock: '3.5GHz', icon: 'fa-microchip' },
+                { id: 'cpu-m1-14500', tier: 'mid', name: '인텔 코어i5-14세대 14500', price: 295000, usedPrice: 210000, cpuScore: 32100, brand: 'Intel', socket: 'LGA1700', tdp: 65, cores: '14코어', threads: '20스레드', clock: '2.6GHz', icon: 'fa-microchip' },
+                { id: 'cpu-m0-1', tier: 'mid', name: 'AMD 라이젠5-5세대 9600X', price: 360000, usedPrice: 260000, cpuScore: 29100, brand: 'AMD', socket: 'AM5', tdp: 65, cores: '6코어', threads: '12스레드', clock: '3.9GHz', icon: 'fa-microchip' },
+                { id: 'cpu-m4', tier: 'mid', name: 'AMD 라이젠5-5세대 7600X', price: 270000, usedPrice: 190000, cpuScore: 28400, brand: 'AMD', socket: 'AM5', tdp: 105, cores: '6코어', threads: '12스레드', clock: '4.7GHz', icon: 'fa-microchip' },
+                { id: 'cpu-m0-4', tier: 'mid', name: 'AMD 라이젠7-4세대 5800X3D', price: 340000, usedPrice: 240000, cpuScore: 28100, brand: 'AMD', socket: 'AM4', tdp: 105, cores: '8코어', threads: '16스레드', clock: '3.4GHz', icon: 'fa-microchip' },
+                { id: 'cpu-m0-3', tier: 'mid', name: '인텔 코어i5-12세대 12600K', price: 240000, usedPrice: 160000, cpuScore: 27100, brand: 'Intel', socket: 'LGA1700', tdp: 125, cores: '10코어', threads: '16스레드', clock: '3.7GHz', icon: 'fa-microchip' },
+                { id: 'cpu-m4-7600', tier: 'mid', name: 'AMD 라이젠5-5세대 7600', price: 235000, usedPrice: 165000, cpuScore: 26900, brand: 'AMD', socket: 'AM5', tdp: 65, cores: '6코어', threads: '12스레드', clock: '3.8GHz', icon: 'fa-microchip' },
+                { id: 'cpu-m5', tier: 'mid', name: 'AMD 라이젠5-5세대 7500F', price: 198000, usedPrice: 140000, cpuScore: 26600, brand: 'AMD', socket: 'AM5', tdp: 65, cores: '6코어', threads: '12스레드', clock: '3.7GHz', icon: 'fa-microchip' },
+                { id: 'cpu-m2', tier: 'mid', name: '인텔 코어i5-14세대 14400F', price: 245000, usedPrice: 170000, cpuScore: 26200, brand: 'Intel', socket: 'LGA1700', tdp: 65, cores: '10코어', threads: '16스레드', clock: '2.5GHz', icon: 'fa-microchip' },
+                { id: 'cpu-m6', tier: 'mid', name: 'AMD 라이젠7-4세대 5700X3D', price: 260000, usedPrice: 180000, cpuScore: 25900, brand: 'AMD', socket: 'AM4', tdp: 105, cores: '8코어', threads: '16스레드', clock: '3.0GHz', icon: 'fa-microchip' },
+                { id: 'cpu-m6-5700x', tier: 'mid', name: 'AMD 라이젠7-4세대 5700X', price: 195000, usedPrice: 135000, cpuScore: 25500, brand: 'AMD', socket: 'AM4', tdp: 65, cores: '8코어', threads: '16스레드', clock: '3.4GHz', icon: 'fa-microchip' },
+                { id: 'cpu-m2-13400f', tier: 'mid', name: '인텔 코어i5-13세대 13400F', price: 215000, usedPrice: 150000, cpuScore: 25100, brand: 'Intel', socket: 'LGA1700', tdp: 65, cores: '10코어', threads: '16스레드', clock: '2.5GHz', icon: 'fa-microchip' },
+                { id: 'cpu-m7', tier: 'mid', name: 'AMD 라이젠5-4세대 5600X', price: 170000, usedPrice: 115000, cpuScore: 21800, brand: 'AMD', socket: 'AM4', tdp: 65, cores: '6코어', threads: '12스레드', clock: '3.7GHz', icon: 'fa-microchip' },
+                { id: 'cpu-m7-5600', tier: 'mid', name: 'AMD 라이젠5-4세대 5600', price: 145000, usedPrice: 99000, cpuScore: 21300, brand: 'AMD', socket: 'AM4', tdp: 65, cores: '6코어', threads: '12스레드', clock: '3.5GHz', icon: 'fa-microchip' },
+                { id: 'cpu-m3', tier: 'mid', name: '인텔 코어i5-12세대 12400F', price: 165000, usedPrice: 110000, cpuScore: 19500, brand: 'Intel', socket: 'LGA1700', tdp: 65, cores: '6코어', threads: '12스레드', clock: '2.5GHz', icon: 'fa-microchip' },
+                { id: 'cpu-m3-12400', tier: 'mid', name: '인텔 코어i5-12세대 12400 (내장)', price: 185000, usedPrice: 125000, cpuScore: 19500, brand: 'Intel', socket: 'LGA1700', tdp: 65, cores: '6코어', threads: '12스레드', clock: '2.5GHz', icon: 'fa-microchip' },
+
+                // LOW TIER
+                { id: 'cpu-l2', tier: 'low', name: 'AMD 라이젠5-4세대 5600G (내장)', price: 145000, usedPrice: 98000, cpuScore: 19700, brand: 'AMD', socket: 'AM4', tdp: 65, cores: '6코어', threads: '12스레드', clock: '3.9GHz', icon: 'fa-microchip' },
+                { id: 'cpu-l4', tier: 'low', name: 'AMD 라이젠5-4세대 5500', price: 110000, usedPrice: 75000, cpuScore: 19300, brand: 'AMD', socket: 'AM4', tdp: 65, cores: '6코어', threads: '12스레드', clock: '3.6GHz', icon: 'fa-microchip' },
+                { id: 'cpu-l2-4650g', tier: 'low', name: 'AMD 라이젠5 PRO 4650G', price: 115000, usedPrice: 75000, cpuScore: 16000, brand: 'AMD', socket: 'AM4', tdp: 65, cores: '6코어', threads: '12스레드', clock: '3.7GHz', icon: 'fa-microchip' },
+                { id: 'cpu-l1', tier: 'low', name: '인텔 코어i3-14세대 14100F', price: 135000, usedPrice: 95000, cpuScore: 14600, brand: 'Intel', socket: 'LGA1700', tdp: 58, cores: '4코어', threads: '8스레드', clock: '3.5GHz', icon: 'fa-microchip' },
+                { id: 'cpu-l3', tier: 'low', name: '인텔 코어i3-13세대 13100', price: 150000, usedPrice: 105000, cpuScore: 13600, brand: 'Intel', socket: 'LGA1700', tdp: 60, cores: '4코어', threads: '8스레드', clock: '3.4GHz', icon: 'fa-microchip' },
+                { id: 'cpu-l5', tier: 'low', name: '인텔 코어i3-12세대 12100F', price: 105000, usedPrice: 70000, cpuScore: 13500, brand: 'Intel', socket: 'LGA1700', tdp: 58, cores: '4코어', threads: '8스레드', clock: '3.3GHz', icon: 'fa-microchip' },
+                { id: 'cpu-l0', tier: 'low', name: 'AMD 라이젠3-3세대 3300X', price: 95000, usedPrice: 55000, cpuScore: 12500, brand: 'AMD', socket: 'AM4', tdp: 65, cores: '4코어', threads: '8스레드', clock: '3.8GHz', icon: 'fa-microchip' },
+                { id: 'cpu-l0-3100', tier: 'low', name: 'AMD 라이젠3-3세대 3100', price: 75000, usedPrice: 42000, cpuScore: 11300, brand: 'AMD', socket: 'AM4', tdp: 65, cores: '4코어', threads: '8스레드', clock: '3.6GHz', icon: 'fa-microchip' },
+                { id: 'cpu-l6', tier: 'low', name: 'AMD 라이젠3-4세대 4100', price: 80000, usedPrice: 50000, cpuScore: 10800, brand: 'AMD', socket: 'AM4', tdp: 65, cores: '4코어', threads: '8스레드', clock: '3.8GHz', icon: 'fa-microchip' },
+                { id: 'cpu-l5-10105f', tier: 'low', name: '인텔 코어i3-10세대 10105F', price: 78000, usedPrice: 48000, cpuScore: 8750, brand: 'Intel', socket: 'LGA1200', tdp: 65, cores: '4코어', threads: '8스레드', clock: '3.7GHz', icon: 'fa-microchip' },
+                { id: 'cpu-l-10100f', tier: 'low', name: '인텔 코어i3-10세대 10100F', price: 68000, usedPrice: 42000, cpuScore: 8550, brand: 'Intel', socket: 'LGA1200', tdp: 65, cores: '4코어', threads: '8스레드', clock: '3.6GHz', icon: 'fa-microchip' },
+                { id: 'cpu-l-3200g', tier: 'low', name: 'AMD 라이젠3-3세대 3200G (내장)', price: 72000, usedPrice: 39000, cpuScore: 7050, brand: 'AMD', socket: 'AM4', tdp: 65, cores: '4코어', threads: '4스레드', clock: '3.6GHz', icon: 'fa-microchip' },
+                { id: 'cpu-l7', tier: 'low', name: '인텔 프로세서 G7400 (셀러론/펜티엄)', price: 65000, usedPrice: 38000, cpuScore: 6800, brand: 'Intel', socket: 'LGA1700', tdp: 46, cores: '2코어', threads: '4스레드', clock: '3.7GHz', icon: 'fa-microchip' },
+                { id: 'cpu-l-9100f', tier: 'low', name: '인텔 코어i3-9세대 9100F', price: 54000, usedPrice: 32000, cpuScore: 6650, brand: 'Intel', socket: 'LGA1151v2', tdp: 65, cores: '4코어', threads: '4스레드', clock: '3.6GHz', icon: 'fa-microchip' },
+                { id: 'cpu-l-2200g', tier: 'low', name: 'AMD 라이젠3-2세대 2200G (내장)', price: 55000, usedPrice: 28000, cpuScore: 6600, brand: 'AMD', socket: 'AM4', tdp: 65, cores: '4코어', threads: '4스레드', clock: '3.5GHz', icon: 'fa-microchip' },
+                { id: 'cpu-l-8100', tier: 'low', name: '인텔 코어i3-8세대 8100 (내장)', price: 48000, usedPrice: 27000, cpuScore: 6100, brand: 'Intel', socket: 'LGA1151v2', tdp: 65, cores: '4코어', threads: '4스레드', clock: '3.6GHz', icon: 'fa-microchip' },
+                { id: 'cpu-l-athlon3000g', tier: 'low', name: 'AMD 애슬론 3000G (내장/최저가)', price: 39000, usedPrice: 19000, cpuScore: 4300, brand: 'AMD', socket: 'AM4', tdp: 35, cores: '2코어', threads: '4스레드', clock: '3.2GHz', icon: 'fa-microchip' },
+                { id: 'cpu-l-g6400', tier: 'low', name: '인텔 펜티엄 골드 G6400 (내장)', price: 49000, usedPrice: 26000, cpuScore: 4100, brand: 'Intel', socket: 'LGA1200', tdp: 58, cores: '2코어', threads: '4스레드', clock: '4.0GHz', icon: 'fa-microchip' }
+            ],
+            motherboard: [
+                { id: 'mb-1', name: 'MSI PRO B760M-A WIFI', price: 175000, usedPrice: 120000, brand: 'MSI', socket: 'LGA1700', ramType: 'DDR5', formFactor: 'M-ATX', icon: 'fa-border-all' },
+                { id: 'mb-2', name: 'ASRock B650M PG Lightning', price: 152000, usedPrice: 110000, brand: 'ASRock', socket: 'AM5', ramType: 'DDR5', formFactor: 'M-ATX', icon: 'fa-border-all' },
+                { id: 'mb-3', name: 'GIGABYTE B650 AORUS ELITE AX', price: 265000, usedPrice: 180000, brand: 'GIGABYTE', socket: 'AM5', ramType: 'DDR5', formFactor: 'ATX', icon: 'fa-border-all' },
+                { id: 'mb-4', name: 'ASUS ROG STRIX Z790-A GAMING WIFI II', price: 470000, usedPrice: 330000, brand: 'ASUS', socket: 'LGA1700', ramType: 'DDR5', formFactor: 'ATX', icon: 'fa-border-all' },
+                { id: 'mb-5', name: 'ASUS PRIME H610M-K', price: 89000, usedPrice: 60000, brand: 'ASUS', socket: 'LGA1700', ramType: 'DDR4', formFactor: 'M-ATX', icon: 'fa-border-all' },
+                { id: 'mb-6', name: 'ASUS PRIME A520M-K (AM4 가성비)', price: 72000, usedPrice: 48000, brand: 'ASUS', socket: 'AM4', ramType: 'DDR4', formFactor: 'M-ATX', icon: 'fa-border-all' },
+                { id: 'mb-ddr4-low', name: 'BIOSTAR H310MHP (DDR4 초저가)', price: 54000, usedPrice: 32000, brand: 'BIOSTAR', socket: 'LGA1151v2', ramType: 'DDR4', formFactor: 'M-ATX', icon: 'fa-border-all' },
+                { id: 'mb-ddr3-1', name: 'ASUS H81M-K (DDR3 레거시)', price: 45000, usedPrice: 22000, brand: 'ASUS', socket: 'LGA1150', ramType: 'DDR3', formFactor: 'M-ATX', icon: 'fa-border-all' },
+                { id: 'mb-ddr3-2', name: 'GIGABYTE GA-H81M-DS2 (DDR3 초저가)', price: 39000, usedPrice: 18000, brand: 'GIGABYTE', socket: 'LGA1150', ramType: 'DDR3', formFactor: 'M-ATX', icon: 'fa-border-all' }
+            ],
+            ram: [
+                { id: 'ram-ddr3-4', name: '삼성전자 DDR3-1600 (4GB)', price: 11000, usedPrice: 5000, brand: '삼성전자', ramType: 'DDR3', capacity: '4GB', clock: '1600MHz', icon: 'fa-memory' },
+                { id: 'ram-ddr3-8', name: '삼성전자 DDR3-1600 (8GB)', price: 18000, usedPrice: 9000, brand: '삼성전자', ramType: 'DDR3', capacity: '8GB', clock: '1600MHz', icon: 'fa-memory' },
+                { id: 'ram-ddr4-16', name: '삼성전자 DDR4-3200 (16GB)', price: 45000, usedPrice: 29000, brand: '삼성전자', ramType: 'DDR4', capacity: '16GB', clock: '3200MHz', icon: 'fa-memory' },
+                { id: 'ram-ddr5-64', name: 'TeamGroup DDR5-5600 Elite (64GB(32Gx2))', price: 245000, usedPrice: 170000, brand: 'TeamGroup', ramType: 'DDR5', capacity: '64GB', clock: '5600MHz', icon: 'fa-memory' },
+                { id: 'ram-1', name: '삼성전자 DDR5-5600 (16GB)', price: 62000, usedPrice: 42000, brand: '삼성전자', ramType: 'DDR5', capacity: '16GB', clock: '5600MHz', icon: 'fa-memory' },
+                { id: 'ram-2', name: 'G.SKILL DDR5-6000 CL36 TRIDENT Z5 (32GB(16Gx2))', price: 185000, usedPrice: 130000, brand: 'G.SKILL', ramType: 'DDR5', capacity: '32GB', clock: '6000MHz', icon: 'fa-memory' },
+                { id: 'ram-3', name: 'TeamGroup DDR5-5600 CL46 Elite (16GB)', price: 58000, usedPrice: 39000, brand: 'TeamGroup', ramType: 'DDR5', capacity: '16GB', clock: '5600MHz', icon: 'fa-memory' },
+                { id: 'ram-4', name: '삼성전자 DDR4-3200 (8GB)', price: 24000, usedPrice: 15000, brand: '삼성전자', ramType: 'DDR4', capacity: '8GB', clock: '3200MHz', icon: 'fa-memory' }
+            ],
+            gpu: [
+                // Technical City Precise GPU Relative Ratings (3DMark TimeSpy / Gaming Score)
+                { id: 'gpu-rtx5090', name: 'NVIDIA GeForce RTX 5090 32GB', price: 3450000, usedPrice: 2950000, gpuScore: 48500, brand: 'NVIDIA/ASUS', vram: '32GB GDDR7', powerReq: 500, benchmark: 'Ultra 8K Ready', icon: 'fa-tv' },
+                { id: 'gpu-h1', name: 'NVIDIA GeForce RTX 4090 24GB', price: 2750000, usedPrice: 2050000, gpuScore: 36200, brand: 'ASUS', vram: '24GB GDDR6X', powerReq: 450, benchmark: 'Ultra 4K Apex', icon: 'fa-tv' },
+                { id: 'gpu-rtx5080', name: 'NVIDIA GeForce RTX 5080 16GB', price: 1850000, usedPrice: 1550000, gpuScore: 34800, brand: 'NVIDIA/MSI', vram: '16GB GDDR7', powerReq: 400, benchmark: 'Ultra 4K Apex', icon: 'fa-tv' },
+                { id: 'gpu-h1-4090d', name: 'NVIDIA GeForce RTX 4090D 24GB', price: 2500000, usedPrice: 1950000, gpuScore: 34500, brand: 'MSI', vram: '24GB GDDR6X', powerReq: 425, benchmark: 'Ultra 4K Apex', icon: 'fa-tv' },
+                { id: 'gpu-h0-1', name: 'AMD Radeon RX 7900 XTX 24GB', price: 1350000, usedPrice: 980000, gpuScore: 29500, brand: 'SAPPHIRE', vram: '24GB GDDR6', powerReq: 355, benchmark: '4K High Gaming', icon: 'fa-tv' },
+                { id: 'gpu-rtx5070ti', name: 'NVIDIA GeForce RTX 5070 Ti 16GB', price: 1320000, usedPrice: 1100000, gpuScore: 29200, brand: 'GIGABYTE', vram: '16GB GDDR7', powerReq: 300, benchmark: '4K High Gaming', icon: 'fa-tv' },
+                { id: 'gpu-h2', name: 'NVIDIA GeForce RTX 4080 SUPER 16GB', price: 1480000, usedPrice: 1100000, gpuScore: 28500, brand: 'ASUS', vram: '16GB GDDR6X', powerReq: 320, benchmark: '4K Ultra Gaming / AI', icon: 'fa-tv' },
+                { id: 'gpu-h2-4080', name: 'NVIDIA GeForce RTX 4080 16GB', price: 1350000, usedPrice: 990000, gpuScore: 27900, brand: 'GIGABYTE', vram: '16GB GDDR6X', powerReq: 320, benchmark: '4K Ultra Gaming', icon: 'fa-tv' },
+                { id: 'gpu-h0-1-xt', name: 'AMD Radeon RX 7900 XT 20GB', price: 1120000, usedPrice: 830000, gpuScore: 25800, brand: 'SAPPHIRE', vram: '20GB GDDR6', powerReq: 315, benchmark: '4K High Gaming', icon: 'fa-tv' },
+                { id: 'gpu-rtx5070', name: 'NVIDIA GeForce RTX 5070 12GB', price: 980000, usedPrice: 820000, gpuScore: 24500, brand: 'ZOTAC', vram: '12GB GDDR7', powerReq: 250, benchmark: '4K Ready Gaming', icon: 'fa-tv' },
+                { id: 'gpu-h0-2', name: 'NVIDIA GeForce RTX 4070 Ti SUPER 16GB', price: 1150000, usedPrice: 880000, gpuScore: 24200, brand: 'GIGABYTE', vram: '16GB GDDR6X', powerReq: 285, benchmark: '4K Ready Gaming', icon: 'fa-tv' },
+                { id: 'gpu-h0-2-4070ti', name: 'NVIDIA GeForce RTX 4070 Ti 12GB', price: 990000, usedPrice: 740000, gpuScore: 22900, brand: 'MSI', vram: '12GB GDDR6X', powerReq: 285, benchmark: '4K Ready Gaming', icon: 'fa-tv' },
+                { id: 'gpu-m1', name: 'NVIDIA GeForce RTX 4070 SUPER 12GB', price: 890000, usedPrice: 650000, gpuScore: 21100, brand: 'GIGABYTE', vram: '12GB GDDR6X', powerReq: 220, benchmark: 'QHD High Gaming', icon: 'fa-tv' },
+                { id: 'gpu-h0-3', name: 'NVIDIA GeForce RTX 3080 Ti 12GB', price: 740000, usedPrice: 510000, gpuScore: 19600, brand: 'EVGA', vram: '12GB GDDR6X', powerReq: 350, benchmark: 'QHD High Gaming', icon: 'fa-tv' },
+                { id: 'gpu-h0-5', name: 'AMD Radeon RX 7800 XT 16GB', price: 690000, usedPrice: 500000, gpuScore: 19400, brand: 'SAPPHIRE', vram: '16GB GDDR6', powerReq: 263, benchmark: 'QHD Gaming', icon: 'fa-tv' },
+                { id: 'gpu-h0-3-3080', name: 'NVIDIA GeForce RTX 3080 10GB', price: 620000, usedPrice: 430000, gpuScore: 17900, brand: 'EVGA', vram: '10GB GDDR6X', powerReq: 320, benchmark: 'QHD High Gaming', icon: 'fa-tv' },
+                { id: 'gpu-h0-4', name: 'NVIDIA GeForce RTX 4070 12GB', price: 770000, usedPrice: 560000, gpuScore: 17750, brand: 'MSI', vram: '12GB GDDR6X', powerReq: 200, benchmark: 'QHD Gaming', icon: 'fa-tv' },
+                { id: 'gpu-h0-5-7700xt', name: 'AMD Radeon RX 7700 XT 12GB', price: 580000, usedPrice: 410000, gpuScore: 16950, brand: 'POWERCOLOR', vram: '12GB GDDR6', powerReq: 245, benchmark: 'QHD Gaming', icon: 'fa-tv' },
+                { id: 'gpu-h0-6', name: 'NVIDIA GeForce RTX 3070 Ti 8GB', price: 480000, usedPrice: 350000, gpuScore: 14950, brand: 'ZOTAC', vram: '8GB GDDR6X', powerReq: 290, benchmark: 'QHD Gaming', icon: 'fa-tv' },
+                { id: 'gpu-h0-7', name: 'NVIDIA GeForce RTX 3070 8GB', price: 410000, usedPrice: 290000, gpuScore: 13750, brand: 'COLORFUL', vram: '8GB GDDR6', powerReq: 220, benchmark: 'QHD/FHD Gaming', icon: 'fa-tv' },
+                { id: 'gpu-m2', name: 'NVIDIA GeForce RTX 4060 Ti 16GB', price: 620000, usedPrice: 460000, gpuScore: 13650, brand: 'MSI', vram: '16GB GDDR6', powerReq: 165, benchmark: 'Mainstream VRAM Gaming', icon: 'fa-tv' },
+                { id: 'gpu-m2-8g', name: 'NVIDIA GeForce RTX 4060 Ti 8GB', price: 545000, usedPrice: 390000, gpuScore: 13450, brand: 'MSI', vram: '8GB GDDR6', powerReq: 160, benchmark: 'Mainstream Gaming', icon: 'fa-tv' },
+                { id: 'gpu-m0-1', name: 'NVIDIA GeForce RTX 3060 Ti 8GB', price: 380000, usedPrice: 260000, gpuScore: 11800, brand: 'MSI', vram: '8GB GDDR6', powerReq: 200, benchmark: 'Mainstream Gaming', icon: 'fa-tv' },
+                { id: 'gpu-m0-2', name: 'NVIDIA GeForce RTX 4060 8GB', price: 415000, usedPrice: 310000, gpuScore: 10900, brand: 'ASUS', vram: '8GB GDDR6', powerReq: 115, benchmark: 'FHD High Gaming', icon: 'fa-tv' },
+                { id: 'gpu-l1', name: 'AMD Radeon RX 7600 8GB', price: 360000, usedPrice: 250000, gpuScore: 10750, brand: 'SAPPHIRE', vram: '8GB GDDR6', powerReq: 165, benchmark: 'FHD Gaming', icon: 'fa-tv' },
+                { id: 'gpu-legacy-1080ti', name: 'NVIDIA GeForce GTX 1080 Ti 11GB', price: 320000, usedPrice: 210000, gpuScore: 9800, brand: 'MSI/ASUS', vram: '11GB GDDR5X', powerReq: 250, benchmark: 'FHD High / Classic King', icon: 'fa-tv' },
+                { id: 'gpu-m0-3', name: 'NVIDIA GeForce RTX 3060 12GB', price: 350000, usedPrice: 230000, gpuScore: 8750, brand: 'PALIT', vram: '12GB GDDR6', powerReq: 170, benchmark: 'FHD Gaming', icon: 'fa-tv' },
+                { id: 'gpu-m0-3-2060s', name: 'NVIDIA GeForce RTX 2060 SUPER 8GB', price: 240000, usedPrice: 155000, gpuScore: 8600, brand: 'GAINWARD', vram: '8GB GDDR6', powerReq: 175, benchmark: 'FHD Gaming', icon: 'fa-tv' },
+                { id: 'gpu-l1-6600', name: 'AMD Radeon RX 6600 8GB', price: 260000, usedPrice: 170000, gpuScore: 8150, brand: 'XFX', vram: '8GB GDDR6', powerReq: 132, benchmark: 'FHD Gaming', icon: 'fa-tv' },
+                { id: 'gpu-m0-3-2060', name: 'NVIDIA GeForce RTX 2060 6GB', price: 210000, usedPrice: 135000, gpuScore: 7500, brand: 'ASUS', vram: '6GB GDDR6', powerReq: 160, benchmark: 'FHD Gaming', icon: 'fa-tv' },
+                { id: 'gpu-m0', name: 'NVIDIA GeForce GTX 1080 8GB', price: 220000, usedPrice: 145000, gpuScore: 7350, brand: 'MSI', vram: '8GB GDDR5X', powerReq: 180, benchmark: 'FHD High Gaming', icon: 'fa-tv' },
+                { id: 'gpu-m0-1070ti', name: 'NVIDIA GeForce GTX 1070 Ti 8GB', price: 190000, usedPrice: 120000, gpuScore: 6800, brand: 'ZOTAC', vram: '8GB GDDR5', powerReq: 180, benchmark: 'FHD Classic', icon: 'fa-tv' },
+                { id: 'gpu-m0-4', name: 'NVIDIA GeForce GTX 1660 SUPER 6GB', price: 220000, usedPrice: 130000, gpuScore: 6100, brand: 'GAINWARD', vram: '6GB GDDR6', powerReq: 125, benchmark: 'FHD Entry Gaming', icon: 'fa-tv' },
+                { id: 'gpu-legacy-rx580', name: 'AMD Radeon RX 580 8GB', price: 110000, usedPrice: 65000, gpuScore: 4350, brand: 'SAPPHIRE', vram: '8GB GDDR5', powerReq: 180, benchmark: 'FHD Budget Classic', icon: 'fa-tv' },
+                { id: 'gpu-legacy-gtx1060', name: 'NVIDIA GeForce GTX 1060 6GB', price: 130000, usedPrice: 75000, gpuScore: 4120, brand: 'MSI', vram: '6GB GDDR5', powerReq: 120, benchmark: 'FHD Popular Classic', icon: 'fa-tv' },
+                { id: 'gpu-sub-rx480', name: 'AMD Radeon RX 480 8GB', price: 89000, usedPrice: 48000, gpuScore: 3980, brand: 'HIS', vram: '8GB GDDR5', powerReq: 150, benchmark: 'FHD Classic', icon: 'fa-tv' },
+                { id: 'gpu-legacy-rx570', name: 'AMD Radeon RX 570 4GB', price: 85000, usedPrice: 48000, gpuScore: 3700, brand: 'HIS/XFX', vram: '4GB GDDR5', powerReq: 150, benchmark: 'FHD Budget Classic', icon: 'fa-tv' },
+                { id: 'gpu-l2', name: 'NVIDIA GeForce GTX 1650 4GB', price: 195000, usedPrice: 110000, gpuScore: 3600, brand: 'ZOTAC', vram: '4GB GDDR6', powerReq: 75, benchmark: 'Basic Gaming', icon: 'fa-tv' },
+                { id: 'gpu-legacy-gtx970', name: 'NVIDIA GeForce GTX 970 4GB', price: 95000, usedPrice: 50000, gpuScore: 3580, brand: 'ASUS', vram: '4GB GDDR5', powerReq: 145, benchmark: 'FHD Classic', icon: 'fa-tv' },
+                { id: 'gpu-sub-1050ti', name: 'NVIDIA GeForce GTX 1050 Ti 4GB', price: 82000, usedPrice: 45000, gpuScore: 2400, brand: 'MSI', vram: '4GB GDDR5', powerReq: 75, benchmark: 'FHD Light Gaming', icon: 'fa-tv' },
+                { id: 'gpu-legacy-1', name: 'NVIDIA GeForce GTX 960 4GB', price: 90000, usedPrice: 45000, gpuScore: 2400, brand: 'GIGABYTE', vram: '4GB GDDR5', powerReq: 120, benchmark: 'Classic FHD Gaming', icon: 'fa-tv' },
+                { id: 'gpu-legacy-2', name: 'NVIDIA GeForce GTX 960 2GB', price: 75000, usedPrice: 35000, gpuScore: 2200, brand: 'ZOTAC', vram: '2GB GDDR5', powerReq: 120, benchmark: 'Basic E-Sports Gaming', icon: 'fa-tv' },
+                { id: 'gpu-sub-rx560', name: 'AMD Radeon RX 560 4GB', price: 68000, usedPrice: 35000, gpuScore: 2100, brand: 'SAPPHIRE', vram: '4GB GDDR5', powerReq: 75, benchmark: 'FHD Light Gaming', icon: 'fa-tv' },
+                { id: 'gpu-sub-1050', name: 'NVIDIA GeForce GTX 1050 2GB', price: 65000, usedPrice: 32000, gpuScore: 1850, brand: 'ZOTAC', vram: '2GB GDDR5', powerReq: 75, benchmark: 'E-Sports Entry', icon: 'fa-tv' },
+                { id: 'gpu-sub-750ti', name: 'NVIDIA GeForce GTX 750 Ti 2GB', price: 48000, usedPrice: 22000, gpuScore: 1300, brand: 'GIGABYTE', vram: '2GB GDDR5', powerReq: 60, benchmark: 'Legacy Entry', icon: 'fa-tv' },
+                { id: 'gpu-sub-gt1030', name: 'NVIDIA GeForce GT 1030 2GB', price: 59000, usedPrice: 28000, gpuScore: 1250, brand: 'COLORFUL', vram: '2GB GDDR5', powerReq: 30, benchmark: 'Office HD Media', icon: 'fa-tv' },
+                { id: 'gpu-sub-660', name: 'NVIDIA GeForce GTX 660 2GB', price: 39000, usedPrice: 18000, gpuScore: 1150, brand: 'ASUS', vram: '2GB GDDR5', powerReq: 140, benchmark: 'Legacy Classic', icon: 'fa-tv' },
+                { id: 'gpu-none', name: '내장 그래픽 (CPU 내장 활용)', price: 0, usedPrice: 0, gpuScore: 1200, brand: 'None', vram: '시스템 공유', powerReq: 0, benchmark: '사무용/기본', icon: 'fa-tv' }
+            ],
+            ssd: [
+                { id: 'ssd-none', name: '선택 안 함 (기존 저장장치 재사용/배제)', price: 0, usedPrice: 0, brand: 'None', type: 'Exclusion', readSpeed: 'N/A', icon: 'fa-ban' },
+                { id: 'ssd-cheap-120', name: '타무즈 GK300 SATA3 (120GB/최저가)', price: 18000, usedPrice: 9000, brand: '타무즈', type: '2.5" SATA3', readSpeed: '530MB/s', icon: 'fa-hard-drive' },
+                { id: 'ssd-cheap-240', name: 'Kingston A400 SATA3 (240GB)', price: 28000, usedPrice: 16000, brand: 'Kingston', type: '2.5" SATA3', readSpeed: '500MB/s', icon: 'fa-hard-drive' },
+                { id: 'ssd-1', name: '삼성전자 980 PRO M.2 NVMe (1TB)', price: 125000, usedPrice: 85000, brand: '삼성전자', type: 'M.2 NVMe (Gen4)', readSpeed: '7,000MB/s', icon: 'fa-hard-drive' },
+                { id: 'ssd-2', name: 'SK하이닉스 Gold P31 M.2 NVMe (1TB)', price: 108000, usedPrice: 72000, brand: 'SK하이닉스', type: 'M.2 NVMe (Gen3)', readSpeed: '3,500MB/s', icon: 'fa-hard-drive' },
+                { id: 'ssd-3', name: '삼성전자 990 PRO M.2 NVMe (2TB)', price: 245000, usedPrice: 175000, brand: '삼성전자', type: 'M.2 NVMe (Gen4)', readSpeed: '7,450MB/s', icon: 'fa-hard-drive' },
+                { id: 'ssd-4', name: '마이크론 Crucial P3 M.2 NVMe (500GB)', price: 52000, usedPrice: 35000, brand: '마이크론', type: 'M.2 NVMe (Gen3)', readSpeed: '3,500MB/s', icon: 'fa-hard-drive' }
+            ],
+            hdd: [
+                { id: 'hdd-none', name: '선택 안 함 (HDD 미포함)', price: 0, usedPrice: 0, brand: 'None', capacity: 'N/A', rpm: 'N/A', icon: 'fa-ban' },
+                { id: 'hdd-1', name: 'Western Digital WD BLUE 7200/64M (2TB)', price: 78000, usedPrice: 45000, brand: 'Western Digital', capacity: '2TB', rpm: '7200RPM', icon: 'fa-database' },
+                { id: 'hdd-2', name: 'Seagate BarraCuda 5400/256M (4TB)', price: 124000, usedPrice: 78000, brand: 'Seagate', capacity: '4TB', rpm: '5400RPM', icon: 'fa-database' }
+            ],
+            cooler: [
+                { id: 'cooler-1', name: 'CPU 번들 기본 쿨러 (기동용)', price: 0, usedPrice: 0, brand: '기본포함', type: '공랭 (기초)', tdpRating: 65, icon: 'fa-fan' },
+                { id: 'cooler-2', name: '3RSYS Socoool RC310 ARGB (공랭)', price: 24000, usedPrice: 15000, brand: '3RSYS', type: '타워형 공랭', tdpRating: 180, icon: 'fa-fan' },
+                { id: 'cooler-3', name: 'Thermalright Peerless Assassin 120 SE', price: 42000, usedPrice: 28000, brand: 'Thermalright', type: '듀얼타워 공랭', tdpRating: 245, icon: 'fa-fan' },
+                { id: 'cooler-4', name: 'NZXT KRAKEN 360 RGB (3열 수랭)', price: 265000, usedPrice: 170000, brand: 'NZXT', type: '3열 일체형 수랭', tdpRating: 300, icon: 'fa-snowflake' }
+            ],
+            psu: [
+                { id: 'psu-none', name: '선택 안 함 (기존 파워서플라이 재사용/배제)', price: 0, usedPrice: 0, brand: 'None', wattage: 0, rating: 'N/A', icon: 'fa-ban' },
+                { id: 'psu-low-400', name: '잘만 EcoMax 400W 83+', price: 32000, usedPrice: 18000, brand: '잘만', wattage: 400, rating: '83+ 표준형', icon: 'fa-plug' },
+                { id: 'psu-low-500', name: '마이크로닉스 COOLMAX FOCUS II 500W', price: 42000, usedPrice: 25000, brand: '마이크로닉스', wattage: 500, rating: '80PLUS STANDARD', icon: 'fa-plug' },
+                { id: 'psu-1', name: '마이크로닉스 Classic II 풀체인지 600W 80PLUS', price: 65000, usedPrice: 40000, brand: '마이크로닉스', wattage: 600, rating: '80PLUS BRONZE', icon: 'fa-plug' },
+                { id: 'psu-2', name: 'MSI MAG A750GL 80PLUS GOLD 풀모듈러 (750W)', price: 115000, usedPrice: 75000, brand: 'MSI', wattage: 750, rating: '80PLUS GOLD', icon: 'fa-plug' },
+                { id: 'psu-3', name: 'SuperFlower SF-850F14HG LEADEX GOLD (850W)', price: 165000, usedPrice: 110000, brand: 'SuperFlower', wattage: 850, rating: '80PLUS GOLD', icon: 'fa-plug' },
+                { id: 'psu-4', name: '시소닉 FOCUS GOLD GX-1000 Full Modular (1000W)', price: 245000, usedPrice: 165000, brand: 'Seasonic', wattage: 1000, rating: '80PLUS GOLD', icon: 'fa-plug' }
+            ],
+            case: [
+                { id: 'case-none', name: '선택 안 함 (테스트 벤치/기존 케이스 재사용)', price: 0, usedPrice: 0, brand: 'None', formFactor: ['ATX', 'M-ATX', 'ITX'], icon: 'fa-ban' },
+                { id: 'case-ultra-cheap', name: '다오테크 K-1 슬림 (초저가 미니타워)', price: 15000, usedPrice: 8000, brand: 'DAOTECH', formFactor: ['M-ATX'], icon: 'fa-box' },
+                { id: 'case-cheap-cox', name: 'COX A5 엘리시움 미들타워', price: 22000, usedPrice: 12000, brand: 'COX', formFactor: ['ATX', 'M-ATX'], icon: 'fa-box' },
+                { id: 'case-1', name: 'DARKFLASH DK200 RGB 화이트 (미들타워)', price: 38000, usedPrice: 25000, brand: 'DARKFLASH', formFactor: ['ATX', 'M-ATX'], icon: 'fa-box' },
+                { id: 'case-2', name: '잘만 N4 REV.1 (미들타워)', price: 45000, usedPrice: 28000, brand: '잘만', formFactor: ['ATX', 'M-ATX'], icon: 'fa-box' },
+                { id: 'case-3', name: 'HYTE Y60 스노우 화이트 (어항 케이스)', price: 289000, usedPrice: 200000, brand: 'HYTE', formFactor: ['ATX', 'M-ATX'], icon: 'fa-box' },
+                { id: 'case-4', name: '앱코 NCORE G30 트루포스 (가성비)', price: 34000, usedPrice: 22000, brand: '앱코', formFactor: ['ATX', 'M-ATX'], icon: 'fa-box' }
+            ]
+        };
+
+        const PRESET_COMBOS_DATABASE = {
+            entry: { cpu: 'cpu-m3', motherboard: 'mb-5', ram: 'ram-ddr4-16', gpu: 'gpu-m0-4', ssd: 'ssd-2', cooler: 'cooler-1', psu: 'psu-low-500', case: 'case-4' },
+            mainstream: { cpu: 'cpu-m5', motherboard: 'mb-2', ram: 'ram-2', gpu: 'gpu-m1', ssd: 'ssd-1', cooler: 'cooler-2', psu: 'psu-1', case: 'case-1' },
+            'high-editing': { cpu: 'cpu-h4', motherboard: 'mb-1', ram: 'ram-ddr5-64', gpu: 'gpu-m1', ssd: 'ssd-3', cooler: 'cooler-4', psu: 'psu-3', case: 'case-2' },
+            ultimate: { cpu: 'cpu-h3', motherboard: 'mb-3', ram: 'ram-ddr5-64', gpu: 'gpu-h1', ssd: 'ssd-3', cooler: 'cooler-4', psu: 'psu-4', case: 'case-3' }
+        };
+
+        let selectedBuild = {
+            cpu: null, motherboard: null, ram: null, gpu: null,
+            ssd: null, hdd: null, cooler: null, psu: null, case: null
+        };
+
+        let customSavedBuildB = null;
+        let activeCategory = 'cpu';
+        let cpuTierFilter = 'all';
+        let isUsedMode = false;
+
+        window.onload = function() {
+            renderCategoryTabs();
+            renderPartsGrid();
+            renderSelectedSummary();
+            checkCompatibility();
+        };
+
+        function saveCurrentBuildToCustomB() {
+            customSavedBuildB = JSON.parse(JSON.stringify(selectedBuild));
+            showToast("현재 내 견적이 '조합 B (커스텀)'로 저장되었습니다.");
+            updateComboVSComparison();
+        }
+
+        function updateComboVSComparison() {
+            // 1. Combo A (Current Selection)
+            const cpuA = selectedBuild.cpu;
+            const gpuA = selectedBuild.gpu;
+            const cpuScoreA = cpuA ? (cpuA.cpuScore || 0) : 0;
+            const gpuScoreA = gpuA ? (gpuA.gpuScore || 0) : 0;
+
+            let priceA = 0;
+            let detailsHtmlA = '';
+            CATEGORIES.forEach(cat => {
+                const part = selectedBuild[cat.id];
+                if (part) {
+                    const price = isUsedMode ? (part.usedPrice ?? part.price) : part.price;
+                    priceA += price;
+                    detailsHtmlA += `
+                        <div class="flex justify-between border-b border-dark-800 pb-1">
+                            <span class="text-gray-400 font-medium">${cat.name}:</span>
+                            <span class="font-semibold text-white truncate max-w-[180px]">${part.name}</span>
+                        </div>
+                    `;
+                } else {
+                    detailsHtmlA += `
+                        <div class="flex justify-between border-b border-dark-800 pb-1 opacity-50">
+                            <span class="text-gray-500">${cat.name}:</span>
+                            <span class="italic text-gray-500">미선택</span>
+                        </div>
+                    `;
+                }
+            });
+
+            // 2. Target Combo B (Preset or Custom Saved Slot)
+            const targetKey = document.getElementById('combo-b-preset-select').value;
+            let cpuB = null, gpuB = null;
+            let priceB = 0;
+            let detailsHtmlB = '';
+            let targetBuild = null;
+
+            if (targetKey === 'custom') {
+                targetBuild = customSavedBuildB;
+            } else if (PRESET_COMBOS_DATABASE[targetKey]) {
+                const presetConfig = PRESET_COMBOS_DATABASE[targetKey];
+                targetBuild = {};
+                CATEGORIES.forEach(cat => {
+                    const partId = presetConfig[cat.id];
+                    if (partId) {
+                        targetBuild[cat.id] = PARTS_DATABASE[cat.id]?.find(p => p.id === partId);
+                    }
+                });
+            }
+
+            if (targetBuild) {
+                CATEGORIES.forEach(cat => {
+                    const part = targetBuild[cat.id];
+                    if (part) {
+                        if (cat.id === 'cpu') cpuB = part;
+                        if (cat.id === 'gpu') gpuB = part;
+                        const price = isUsedMode ? (part.usedPrice ?? part.price) : part.price;
+                        priceB += price;
+                        detailsHtmlB += `
+                            <div class="flex justify-between border-b border-dark-800 pb-1">
+                                <span class="text-gray-400 font-medium">${cat.name}:</span>
+                                <span class="font-semibold text-white truncate max-w-[180px]">${part.name}</span>
+                            </div>
+                        `;
+                    } else {
+                        detailsHtmlB += `
+                            <div class="flex justify-between border-b border-dark-800 pb-1 opacity-50">
+                                <span class="text-gray-500">${cat.name}:</span>
+                                <span class="italic text-gray-500">미선택</span>
+                            </div>
+                        `;
+                    }
+                });
+            } else {
+                detailsHtmlB = `<p class="text-xs text-amber-400 italic">저장된 커스텀 조합 B가 없습니다. 상단의 '현재 견적을 조합 B로 저장' 버튼을 누르세요.</p>`;
+            }
+
+            const cpuScoreB = cpuB ? (cpuB.cpuScore || 0) : 0;
+            const gpuScoreB = gpuB ? (gpuB.gpuScore || 0) : 0;
+
+            // Render 1:1 Metric Bars
+            document.getElementById('metric-cpu-a-name').innerText = `조합 A: ${cpuA ? cpuA.name : 'CPU 미선택'}`;
+            document.getElementById('metric-cpu-a-val').innerText = `${cpuScoreA.toLocaleString()} Pts`;
+            document.getElementById('metric-cpu-b-name').innerText = `조합 B: ${cpuB ? cpuB.name : 'CPU 미선택'}`;
+            document.getElementById('metric-cpu-b-val').innerText = `${cpuScoreB.toLocaleString()} Pts`;
+
+            const maxCpuScore = Math.max(cpuScoreA, cpuScoreB, 1);
+            document.getElementById('metric-cpu-a-bar').style.width = `${Math.round((cpuScoreA / maxCpuScore) * 100)}%`;
+            document.getElementById('metric-cpu-b-bar').style.width = `${Math.round((cpuScoreB / maxCpuScore) * 100)}%`;
+            
+            const cpuWinnerBadge = document.getElementById('metric-cpu-winner');
+            const cpuPctBadge = document.getElementById('metric-cpu-pct-diff');
+            if (cpuScoreA === cpuScoreB) {
+                cpuWinnerBadge.innerText = "동일 점수";
+                cpuPctBadge.innerText = "0%";
+            } else if (cpuScoreA > cpuScoreB) {
+                const diffPct = cpuScoreB > 0 ? Math.round(((cpuScoreA - cpuScoreB) / cpuScoreB) * 100) : 100;
+                cpuWinnerBadge.innerText = "A 우세";
+                cpuWinnerBadge.className = "text-xs font-bold px-2 py-0.5 rounded bg-brand-blue/20 text-brand-blue";
+                cpuPctBadge.innerText = `+${diffPct}% 더 높음`;
+            } else {
+                const diffPct = cpuScoreA > 0 ? Math.round(((cpuScoreB - cpuScoreA) / cpuScoreA) * 100) : 100;
+                cpuWinnerBadge.innerText = "B 우세";
+                cpuWinnerBadge.className = "text-xs font-bold px-2 py-0.5 rounded bg-brand-purple/20 text-brand-purple";
+                cpuPctBadge.innerText = `+${diffPct}% 더 높음`;
+            }
+
+            document.getElementById('metric-gpu-a-name').innerText = `조합 A: ${gpuA ? gpuA.name : 'GPU 미선택'}`;
+            document.getElementById('metric-gpu-a-val').innerText = `${gpuScoreA.toLocaleString()} Pts`;
+            document.getElementById('metric-gpu-b-name').innerText = `조합 B: ${gpuB ? gpuB.name : 'GPU 미선택'}`;
+            document.getElementById('metric-gpu-b-val').innerText = `${gpuScoreB.toLocaleString()} Pts`;
+
+            const maxGpuScore = Math.max(gpuScoreA, gpuScoreB, 1);
+            document.getElementById('metric-gpu-a-bar').style.width = `${Math.round((gpuScoreA / maxGpuScore) * 100)}%`;
+            document.getElementById('metric-gpu-b-bar').style.width = `${Math.round((gpuScoreB / maxGpuScore) * 100)}%`;
+            
+            const gpuWinnerBadge = document.getElementById('metric-gpu-winner');
+            const gpuPctBadge = document.getElementById('metric-gpu-pct-diff');
+            if (gpuScoreA === gpuScoreB) {
+                gpuWinnerBadge.innerText = "동일 점수";
+                gpuPctBadge.innerText = "0%";
+            } else if (gpuScoreA > gpuScoreB) {
+                const diffPct = gpuScoreB > 0 ? Math.round(((gpuScoreA - gpuScoreB) / gpuScoreB) * 100) : 100;
+                gpuWinnerBadge.innerText = "A 우세";
+                gpuWinnerBadge.className = "text-xs font-bold px-2 py-0.5 rounded bg-brand-blue/20 text-brand-blue";
+                gpuPctBadge.innerText = `+${diffPct}% 더 높음`;
+            } else {
+                const diffPct = gpuScoreA > 0 ? Math.round(((gpuScoreB - gpuScoreA) / gpuScoreA) * 100) : 100;
+                gpuWinnerBadge.innerText = "B 우세";
+                gpuWinnerBadge.className = "text-xs font-bold px-2 py-0.5 rounded bg-brand-purple/20 text-brand-purple";
+                gpuPctBadge.innerText = `+${diffPct}% 더 높음`;
+            }
+
+            document.getElementById('metric-price-a').innerText = `₩ ${priceA.toLocaleString()}`;
+            document.getElementById('metric-price-b').innerText = `₩ ${priceB.toLocaleString()}`;
+            
+            const priceWinnerBadge = document.getElementById('metric-price-winner');
+            const pricePctBadge = document.getElementById('metric-price-pct-diff');
+            if (priceA === priceB) {
+                priceWinnerBadge.innerText = "동일 가격";
+                pricePctBadge.innerText = "0%";
+            } else if (priceA < priceB) {
+                const diffPct = priceB > 0 ? Math.round(((priceB - priceA) / priceB) * 100) : 0;
+                priceWinnerBadge.innerText = "A가 더 저렴";
+                priceWinnerBadge.className = "text-xs font-bold px-2 py-0.5 rounded bg-green-500/20 text-green-400";
+                pricePctBadge.innerText = `A가 ${diffPct}% (-₩${(priceB - priceA).toLocaleString()}) 절약`;
+            } else {
+                const diffPct = priceA > 0 ? Math.round(((priceA - priceB) / priceA) * 100) : 0;
+                priceWinnerBadge.innerText = "B가 더 저렴";
+                priceWinnerBadge.className = "text-xs font-bold px-2 py-0.5 rounded bg-brand-purple/20 text-brand-purple";
+                pricePctBadge.innerText = `B가 ${diffPct}% (-₩${(priceA - priceB).toLocaleString()}) 절약`;
+            }
+
+            document.getElementById('combo-a-details').innerHTML = detailsHtmlA;
+            document.getElementById('combo-b-details').innerHTML = detailsHtmlB;
+
+            const diffPrice = priceA - priceB;
+            let resultSummary = `PassMark 연산 및 3DMark 타임스파이 그래픽 점수로 대조 완료. `;
+            if (diffPrice > 0) {
+                const pricePct = priceB > 0 ? Math.round((diffPrice / priceB) * 100) : 0;
+                resultSummary += `(조합 A가 조합 B보다 ${pricePct}% / ₩${diffPrice.toLocaleString()} 더 비쌉니다.)`;
+            } else if (diffPrice < 0) {
+                const pricePct = priceB > 0 ? Math.round((Math.abs(diffPrice) / priceB) * 100) : 0;
+                resultSummary += `(조합 A가 조합 B보다 ${pricePct}% / ₩${Math.abs(diffPrice).toLocaleString()} 더 저렴합니다.)`;
+            } else {
+                resultSummary += `(두 조합의 전체 견적 가격이 동일합니다.)`;
+            }
+            document.getElementById('combo-vs-result-msg').innerHTML = resultSummary;
+        }
+
+        function applyComboBToCurrent() {
+            const targetKey = document.getElementById('combo-b-preset-select').value;
+            let targetBuild = null;
+
+            if (targetKey === 'custom') {
+                targetBuild = customSavedBuildB;
+            } else if (PRESET_COMBOS_DATABASE[targetKey]) {
+                const presetConfig = PRESET_COMBOS_DATABASE[targetKey];
+                targetBuild = {};
+                CATEGORIES.forEach(cat => {
+                    const partId = presetConfig[cat.id];
+                    if (partId) {
+                        targetBuild[cat.id] = PARTS_DATABASE[cat.id]?.find(p => p.id === partId);
+                    }
+                });
+            }
+
+            if (!targetBuild) {
+                showToast("적용할 대상 조합 B가 설정되어 있지 않습니다.");
+                return;
+            }
+
+            resetEstimate();
+            CATEGORIES.forEach(cat => {
+                if (targetBuild[cat.id]) {
+                    selectedBuild[cat.id] = targetBuild[cat.id];
+                }
+            });
+
+            closeModal('combo-modal');
+            renderCategoryTabs();
+            renderPartsGrid();
+            renderSelectedSummary();
+            checkCompatibility();
+            showToast("선택한 조합 B가 내 견적으로 적용되었습니다.");
+        }
+
+        function setCpuTier(tier) {
+            cpuTierFilter = tier;
+            const buttons = ['all', 'high', 'mid', 'low'];
+            buttons.forEach(t => {
+                const btn = document.getElementById(`tier-btn-${t}`);
+                if (btn) {
+                    btn.className = (t === tier) ? "px-2 py-0.5 rounded font-medium bg-brand-blue text-white" : "px-2 py-0.5 rounded font-medium text-gray-400 hover:text-white";
+                }
+            });
+            renderPartsGrid();
+        }
+
+        function renderCategoryTabs() {
+            const container = document.getElementById('category-tabs');
+            container.innerHTML = CATEGORIES.map(cat => {
+                const isActive = cat.id === activeCategory;
+                const isSelected = selectedBuild[cat.id] !== null;
+                return `
+                    <button onclick="switchCategory('${cat.id}')" 
+                        class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 whitespace-nowrap transition-all ${
+                            isActive 
+                            ? 'bg-gradient-to-r from-brand-blue to-brand-purple text-white shadow-lg shadow-brand-blue/20' 
+                            : 'bg-dark-800 text-gray-400 hover:bg-dark-700 hover:text-gray-200 border border-dark-700'
+                        }">
+                        <i class="fa-solid ${cat.icon}"></i>
+                        <span>${cat.name}</span>
+                        ${isSelected ? '<span class="w-2 h-2 rounded-full bg-brand-cyan"></span>' : ''}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function switchCategory(catId) {
+            activeCategory = catId;
+            const cpuTierBox = document.getElementById('cpu-tier-filter-box');
+            if (catId === 'cpu') {
+                cpuTierBox.classList.remove('hidden');
+            } else {
+                cpuTierBox.classList.add('hidden');
+            }
+            renderCategoryTabs();
+            renderPartsGrid();
+        }
+
+        function renderPartsGrid() {
+            const grid = document.getElementById('parts-list-grid');
+            const searchKeyword = document.getElementById('parts-search').value.toLowerCase();
+            const sortMode = document.getElementById('parts-sort').value;
+
+            let items = [...(PARTS_DATABASE[activeCategory] || [])];
+
+            if (activeCategory === 'cpu' && cpuTierFilter !== 'all') {
+                items = items.filter(item => item.tier === cpuTierFilter);
+            }
+
+            if (searchKeyword) {
+                items = items.filter(item => 
+                    item.name.toLowerCase().includes(searchKeyword) || 
+                    (item.brand && item.brand.toLowerCase().includes(searchKeyword))
+                );
+            }
+
+            const getPrice = (item) => isUsedMode ? (item.usedPrice ?? item.price) : item.price;
+
+            if (sortMode === 'benchmark-desc') {
+                if (activeCategory === 'cpu') items.sort((a, b) => (b.cpuScore || 0) - (a.cpuScore || 0));
+                else if (activeCategory === 'gpu') items.sort((a, b) => (b.gpuScore || 0) - (a.gpuScore || 0));
+                else items.sort((a, b) => getPrice(b) - getPrice(a));
+            } else if (sortMode === 'price-asc') {
+                items.sort((a, b) => getPrice(a) - getPrice(b));
+            } else if (sortMode === 'price-desc') {
+                items.sort((a, b) => getPrice(b) - getPrice(a));
+            } else if (sortMode === 'name') {
+                items.sort((a, b) => a.name.localeCompare(b.name));
+            }
+
+            grid.innerHTML = items.map(part => {
+                const isSelected = selectedBuild[activeCategory]?.id === part.id;
+                const currentPrice = getPrice(part);
+                const scoreText = part.cpuScore ? `CPU PassMark: ${part.cpuScore.toLocaleString()} Pts` : part.gpuScore ? `3DMark TimeSpy: ${part.gpuScore.toLocaleString()} Pts` : null;
+
+                return `
+                    <div class="bg-dark-800 border ${isSelected ? 'border-brand-blue ring-1 ring-brand-blue/50 bg-brand-blue/5' : 'border-dark-700 hover:border-gray-600'} rounded-xl p-4 flex flex-col justify-between transition group relative">
+                        <div>
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="text-[11px] font-medium px-2 py-0.5 rounded bg-dark-900 border border-dark-700 text-brand-cyan">${part.brand}</span>
+                                    ${scoreText ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-brand-purple/20 text-brand-purple border border-brand-purple/30 font-bold font-mono">${scoreText}</span>` : ''}
+                                </div>
+                                <button onclick="openPartDetail('${activeCategory}', '${part.id}')" class="text-xs text-gray-400 hover:text-brand-blue transition">
+                                    <i class="fa-solid fa-circle-info"></i> 상세
+                                </button>
+                            </div>
+                            <h4 class="text-xs sm:text-sm font-bold text-gray-100 group-hover:text-brand-blue transition line-clamp-2 leading-snug mb-2">
+                                ${part.name}
+                            </h4>
+                            <div class="text-[11px] text-gray-400 space-y-0.5">
+                                ${getPartSubSpecsText(activeCategory, part)}
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t border-dark-700/60 flex justify-between items-center">
+                            <div>
+                                <span class="text-sm font-extrabold ${currentPrice === 0 ? 'text-gray-400' : isUsedMode ? 'text-brand-used' : 'text-white'}">
+                                    ${currentPrice === 0 ? '무료 / 선택안함' : '₩ ' + currentPrice.toLocaleString()}
+                                </span>
+                            </div>
+                            <button onclick="selectPart('${activeCategory}', '${part.id}')" 
+                                class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                                    isSelected 
+                                    ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30' 
+                                    : 'bg-brand-blue hover:bg-blue-600 text-white shadow-md shadow-brand-blue/20'
+                                }">
+                                ${isSelected ? '<i class="fa-solid fa-xmark"></i> 해제' : '<i class="fa-solid fa-plus"></i> 선택'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getPartSubSpecsText(cat, part) {
+            if (cat === 'cpu') return `<div>소켓: <span class="text-gray-200">${part.socket}</span> | TDP: ${part.tdp}W</div><div>코어: ${part.cores} | ${part.clock}</div>`;
+            if (cat === 'motherboard') return `<div>소켓: <span class="text-gray-200">${part.socket}</span> | 규격: ${part.formFactor}</div><div>지원 RAM: ${part.ramType}</div>`;
+            if (cat === 'ram') return `<div>규격: <span class="text-gray-200">${part.ramType}</span> | 용량: ${part.capacity}</div><div>동작속도: ${part.clock}</div>`;
+            if (cat === 'gpu') return `<div>메모리: ${part.vram}</div><div>권장 전력: ${part.powerReq}W</div>`;
+            if (cat === 'ssd') return `<div>타입: ${part.type}</div><div>속도: ${part.readSpeed}</div>`;
+            if (cat === 'psu') return `<div>출력: <span class="text-gray-200">${part.wattage}W</span></div><div>인증: ${part.rating}</div>`;
+            if (cat === 'case') return `<div>지원 폼팩터: ${Array.isArray(part.formFactor) ? part.formFactor.join(', ') : part.formFactor}</div>`;
+            return `<div>브랜드: ${part.brand}</div>`;
+        }
+
+        function filterPartsList() {
+            renderPartsGrid();
+        }
+
+        function selectPart(catId, partId) {
+            const currentSelected = selectedBuild[catId];
+            if (currentSelected && currentSelected.id === partId) {
+                selectedBuild[catId] = null;
+                showToast("부품 선택이 해제되었습니다.");
+            } else {
+                const partObj = PARTS_DATABASE[catId].find(p => p.id === partId);
+                selectedBuild[catId] = partObj;
+                showToast(`${partObj.name} 선택 완료`);
+            }
+            renderCategoryTabs();
+            renderPartsGrid();
+            renderSelectedSummary();
+            checkCompatibility();
+        }
+
+        function renderSelectedSummary() {
+            const listContainer = document.getElementById('selected-parts-list');
+            let selectedCount = 0;
+            let grandTotal = 0;
+            let totalEstWattage = 0;
+
+            const cpuScore = selectedBuild.cpu ? (selectedBuild.cpu.cpuScore || 0) : 0;
+            const gpuScore = selectedBuild.gpu ? (selectedBuild.gpu.gpuScore || 0) : 0;
+
+            listContainer.innerHTML = CATEGORIES.map(cat => {
+                const part = selectedBuild[cat.id];
+                if (part) {
+                    selectedCount++;
+                    const price = isUsedMode ? (part.usedPrice ?? part.price) : part.price;
+                    grandTotal += price;
+                    
+                    if (cat.id === 'cpu') totalEstWattage += (part.tdp || 65);
+                    if (cat.id === 'gpu') totalEstWattage += (part.powerReq || 150);
+
+                    return `
+                        <div class="pt-2 flex items-center justify-between group">
+                            <div class="flex items-center space-x-3 overflow-hidden pr-2">
+                                <div class="w-7 h-7 rounded-lg bg-dark-900 border border-dark-700 flex items-center justify-center text-xs text-brand-blue flex-shrink-0">
+                                    <i class="fa-solid ${cat.icon}"></i>
+                                </div>
+                                <div class="truncate">
+                                    <div class="text-[10px] text-gray-400">${cat.name}</div>
+                                    <div class="text-xs font-semibold text-white truncate">${part.name}</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2 flex-shrink-0">
+                                <span class="text-xs font-bold ${isUsedMode ? 'text-brand-used' : 'text-gray-200'}">
+                                    ${price === 0 ? '0' : '₩ ' + price.toLocaleString()}
+                                </span>
+                                <button onclick="selectPart('${cat.id}', '${part.id}')" class="text-gray-500 hover:text-red-400 text-xs transition px-1">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="pt-2 flex items-center justify-between opacity-60">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-7 h-7 rounded-lg bg-dark-900/50 border border-dark-700 flex items-center justify-center text-xs text-gray-600">
+                                    <i class="fa-solid ${cat.icon}"></i>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] text-gray-500">${cat.name}</div>
+                                    <div class="text-xs text-gray-500 italic">선택된 부품 없음</div>
+                                </div>
+                            </div>
+                            <button onclick="switchCategory('${cat.id}')" class="text-[11px] text-brand-blue hover:underline">
+                                선택하기
+                            </button>
+                        </div>
+                    `;
+                }
+            }).join('');
+
+            if (totalEstWattage > 0) totalEstWattage += 60;
+
+            document.getElementById('selected-count-badge').innerText = `${selectedCount} / ${CATEGORIES.length} 선택됨`;
+            document.getElementById('total-price').innerText = `₩ ${grandTotal.toLocaleString()}`;
+            document.getElementById('total-wattage').innerText = `${totalEstWattage} W`;
+            
+            document.getElementById('total-cpu-score').innerText = `${cpuScore.toLocaleString()} Pts`;
+            document.getElementById('total-gpu-score').innerText = `${gpuScore.toLocaleString()} Pts`;
+            document.getElementById('summary-cpu-score').innerText = `${cpuScore.toLocaleString()} Pts`;
+            document.getElementById('summary-gpu-score').innerText = `${gpuScore.toLocaleString()} Pts`;
+
+            updateBudgetProgress(grandTotal);
+            renderSoftwareEstimator(cpuScore, gpuScore);
+            renderSpecsComparison();
+        }
+
+        function updateBudgetProgress(total) {
+            const inputVal = parseInt(document.getElementById('budget-input').value) || 0;
+            const remainingText = document.getElementById('budget-remaining-text');
+            const percentText = document.getElementById('budget-percent-text');
+            const progressBar = document.getElementById('budget-progress-bar');
+            const statusTag = document.getElementById('budget-status-tag');
+
+            if (inputVal <= 0) {
+                statusTag.className = "text-xs px-2 py-0.5 rounded font-medium bg-gray-700 text-gray-300";
+                statusTag.innerText = "미설정";
+                progressBar.style.width = "0%";
+                remainingText.innerText = "₩ 0";
+                percentText.innerText = "0%";
+                return;
+            }
+
+            const percent = Math.min(Math.round((total / inputVal) * 100), 100);
+            const remaining = inputVal - total;
+
+            percentText.innerText = `${percent}%`;
+            progressBar.style.width = `${percent}%`;
+
+            if (remaining >= 0) {
+                statusTag.className = "text-xs px-2 py-0.5 rounded font-medium bg-green-500/20 text-green-400 border border-green-500/30";
+                statusTag.innerText = "예산 충족";
+                progressBar.className = "h-full bg-brand-blue transition-all duration-300";
+                remainingText.innerText = `₩ ${remaining.toLocaleString()} 남음`;
+                remainingText.className = "font-semibold text-green-400";
+            } else {
+                statusTag.className = "text-xs px-2 py-0.5 rounded font-medium bg-red-500/20 text-red-400 border border-red-500/30";
+                statusTag.innerText = "예산 초과";
+                progressBar.className = "h-full bg-red-500 transition-all duration-300";
+                remainingText.innerText = `₩ ${Math.abs(remaining).toLocaleString()} 초과`;
+                remainingText.className = "font-semibold text-red-400";
+            }
+        }
+
+        function renderSoftwareEstimator(cpuScore, gpuScore) {
+            const grid = document.getElementById('software-estimator-grid');
+            grid.innerHTML = SOFTWARE_BENCHMARKS.map(item => {
+                const cpuRatio = item.reqCpuScore > 0 ? (cpuScore / item.reqCpuScore) : 1;
+                const gpuRatio = item.reqGpuScore > 0 ? (gpuScore / item.reqGpuScore) : 1;
+                const minRatio = Math.min(cpuRatio, gpuRatio);
+
+                let statusText = "구동 불가";
+                let statusColor = "text-gray-500 bg-gray-900 border-gray-700";
+                let barColor = "bg-gray-700";
+                let fillPercent = Math.min(Math.round(minRatio * 100), 100);
+
+                if (minRatio >= 1.5) {
+                    statusText = "매우 원활";
+                    statusColor = "text-emerald-400 bg-emerald-500/10 border-emerald-500/30";
+                    barColor = "bg-emerald-500";
+                } else if (minRatio >= 1.0) {
+                    statusText = "쾌적 가능";
+                    statusColor = "text-brand-blue bg-blue-500/10 border-blue-500/30";
+                    barColor = "bg-brand-blue";
+                } else if (minRatio >= 0.6) {
+                    statusText = "옵션 타협";
+                    statusColor = "text-amber-400 bg-amber-500/10 border-amber-500/30";
+                    barColor = "bg-amber-500";
+                }
+
+                return `
+                    <div class="bg-dark-900 p-3 rounded-xl border border-dark-700 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <i class="fa-solid ${item.icon} text-brand-cyan text-xs"></i>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded font-bold border ${statusColor}">
+                                    ${statusText}
+                                </span>
+                            </div>
+                            <h5 class="text-xs font-bold text-white truncate">${item.name}</h5>
+                        </div>
+                        <div class="mt-2 space-y-1">
+                            <div class="w-full h-1.5 bg-dark-800 rounded-full overflow-hidden border border-dark-700">
+                                <div class="h-full ${barColor} transition-all duration-300" style="width: ${fillPercent}%"></div>
+                            </div>
+                            <div class="flex justify-between text-[9px] text-gray-500">
+                                <span>요구성능</span>
+                                <span>${fillPercent}%</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function checkCompatibility() {
+            const cpu = selectedBuild.cpu;
+            const mb = selectedBuild.motherboard;
+            const ram = selectedBuild.ram;
+            const gpu = selectedBuild.gpu;
+            const psu = selectedBuild.psu;
+            const pcCase = selectedBuild.case;
+
+            const logs = [];
+            let isWarning = false;
+
+            if (cpu && mb) {
+                if (cpu.socket !== mb.socket) {
+                    logs.push(`❌ <strong class="text-red-400">소켓 불일치 경고:</strong> CPU(${cpu.socket})와 메인보드(${mb.socket}) 호환 불가!`);
+                    isWarning = true;
+                } else {
+                    logs.push(`✅ CPU-메인보드 소켓 규격 호환 (${cpu.socket})`);
+                }
+            }
+
+            if (mb && ram) {
+                if (mb.ramType !== ram.ramType) {
+                    logs.push(`❌ <strong class="text-red-400">RAM 규격 불일치:</strong> 메인보드(${mb.ramType})와 메모리(${ram.ramType}) 결합 불가!`);
+                    isWarning = true;
+                } else {
+                    logs.push(`✅ 메인보드-RAM 표준 규격 동일 (${ram.ramType})`);
+                }
+            }
+
+            if (gpu && psu && psu.id !== 'psu-none') {
+                let reqWatt = (cpu?.tdp || 65) + (gpu?.powerReq || 150) + 60;
+                if (psu.wattage < reqWatt) {
+                    logs.push(`⚠️ <strong class="text-amber-400">전력 부족 위험:</strong> 권장 파워(${reqWatt}W 이상) 대비 현재 파워(${psu.wattage}W) 부족`);
+                    isWarning = true;
+                } else {
+                    logs.push(`✅ 파워서플라이 정격 용량 충분 (${psu.wattage}W)`);
+                }
+            }
+
+            if (mb && pcCase && pcCase.id !== 'case-none') {
+                if (Array.isArray(pcCase.formFactor) && !pcCase.formFactor.includes(mb.formFactor)) {
+                    logs.push(`❌ <strong class="text-red-400">케이스 크기 불일치:</strong> 케이스가 메인보드(${mb.formFactor})를 지원하지 않음`);
+                    isWarning = true;
+                }
+            }
+
+            const alertBadge = document.getElementById('compatibility-status-badge');
+            const alertContainer = document.getElementById('compatibility-messages');
+
+            if (logs.length === 0) {
+                alertBadge.className = "px-2 py-0.5 rounded text-[11px] font-bold bg-gray-700 text-gray-300";
+                alertBadge.innerText = "부품 선택 중";
+                alertContainer.innerHTML = `<p class="text-gray-500 italic">호환성 검사를 위해 CPU, 메인보드, RAM 등을 추가해 보세요.</p>`;
+            } else if (isWarning) {
+                alertBadge.className = "px-2 py-0.5 rounded text-[11px] font-bold bg-red-500/20 text-red-400 border border-red-500/30";
+                alertBadge.innerText = "호환 경고 발생";
+                alertContainer.innerHTML = logs.map(l => `<div>${l}</div>`).join('');
+            } else {
+                alertBadge.className = "px-2 py-0.5 rounded text-[11px] font-bold bg-green-500/20 text-green-400 border border-green-500/30";
+                alertBadge.innerText = "완벽 호환 확인";
+                alertContainer.innerHTML = logs.map(l => `<div>${l}</div>`).join('');
+            }
+        }
+
+        function toggleUsedMode() {
+            isUsedMode = !isUsedMode;
+            const badge = document.getElementById('used-badge');
+            const usedLabel = document.getElementById('used-mode-label');
+            const toggleBtn = document.getElementById('used-mode-toggle');
+
+            if (isUsedMode) {
+                badge.innerText = 'ON';
+                badge.className = 'text-[10px] px-1.5 py-0.2 rounded bg-amber-500 text-black font-bold';
+                usedLabel.classList.remove('hidden');
+                toggleBtn.classList.add('border-brand-used', 'bg-amber-950/40');
+                showToast("중고 시세가 적용됩니다. (신품가 대비 30~40% 할인)");
+            } else {
+                badge.innerText = 'OFF';
+                badge.className = 'text-[10px] px-1.5 py-0.2 rounded bg-gray-800 text-gray-400 font-bold';
+                usedLabel.classList.add('hidden');
+                toggleBtn.classList.remove('border-brand-used', 'bg-amber-950/40');
+                showToast("신품 정가 시세가 적용됩니다.");
+            }
+
+            renderPartsGrid();
+            renderSelectedSummary();
+        }
+
+        function openComboVSModal() {
+            updateComboVSComparison();
+            openModal('combo-modal');
+        }
+
+        function renderSpecsComparison() {
+            const cpu = selectedBuild.cpu;
+            const gpu = selectedBuild.gpu;
+
+            const cpuBody = document.getElementById('cpu-comparison-body');
+            const gpuBody = document.getElementById('gpu-comparison-body');
+            const cpuScoreBadge = document.getElementById('cpu-score-badge');
+            const gpuScoreBadge = document.getElementById('gpu-score-badge');
+
+            if (cpu) {
+                cpuScoreBadge.innerText = `PassMark: ${cpu.cpuScore ? cpu.cpuScore.toLocaleString() : 0} Pts`;
+                cpuBody.innerHTML = `
+                    <div class="font-bold text-white text-sm mb-1">${cpu.name}</div>
+                    <div class="grid grid-cols-2 gap-1 text-gray-400">
+                        <span>제조사: <strong class="text-gray-200">${cpu.brand}</strong></span>
+                        <span>소켓 규격: <strong class="text-gray-200">${cpu.socket}</strong></span>
+                        <span>코어 수: <strong class="text-gray-200">${cpu.cores}</strong></span>
+                        <span>스레드 수: <strong class="text-gray-200">${cpu.threads}</strong></span>
+                        <span>기본 클럭: <strong class="text-gray-200">${cpu.clock}</strong></span>
+                        <span>소비 전력(TDP): <strong class="text-brand-cyan">${cpu.tdp}W</strong></span>
+                    </div>
+                `;
+            } else {
+                cpuScoreBadge.innerText = `PassMark: 0 Pts`;
+                cpuBody.innerHTML = `<p class="text-gray-500 italic">CPU가 선택되지 않았습니다.</p>`;
+            }
+
+            if (gpu) {
+                gpuScoreBadge.innerText = `TimeSpy: ${gpu.gpuScore ? gpu.gpuScore.toLocaleString() : 0} Pts`;
+                gpuBody.innerHTML = `
+                    <div class="font-bold text-white text-sm mb-1">${gpu.name}</div>
+                    <div class="grid grid-cols-2 gap-1 text-gray-400">
+                        <span>제조사: <strong class="text-gray-200">${gpu.brand}</strong></span>
+                        <span>메모리(VRAM): <strong class="text-gray-200">${gpu.vram}</strong></span>
+                        <span>권장 전력: <strong class="text-brand-cyan">${gpu.powerReq}W</strong></span>
+                        <span>성능 등급: <strong class="text-brand-purple">${gpu.benchmark}</strong></span>
+                    </div>
+                `;
+            } else {
+                gpuScoreBadge.innerText = `TimeSpy: 0 Pts`;
+                gpuBody.innerHTML = `<p class="text-gray-500 italic">그래픽카드가 선택되지 않았습니다.</p>`;
+            }
+        }
+
+        function resetEstimate() {
+            selectedBuild = { cpu: null, motherboard: null, ram: null, gpu: null, ssd: null, hdd: null, cooler: null, psu: null, case: null };
+            document.getElementById('budget-input').value = '';
+            renderCategoryTabs();
+            renderPartsGrid();
+            renderSelectedSummary();
+            checkCompatibility();
+            showToast("견적이 초기화되었습니다.");
+        }
+
+        function resetToHome() {
+            switchCategory('cpu');
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function openPartDetail(catId, partId) {
+            const part = PARTS_DATABASE[catId]?.find(p => p.id === partId);
+            if (!part) return;
+
+            document.getElementById('modal-part-title').innerText = part.name;
+            document.getElementById('modal-part-brand').innerText = part.brand || '제조사';
+            
+            const currentPrice = isUsedMode ? (part.usedPrice ?? part.price) : part.price;
+            document.getElementById('modal-part-price').innerText = currentPrice === 0 ? '선택 안 함 / 무료' : `₩ ${currentPrice.toLocaleString()}`;
+
+            const usedBadge = document.getElementById('modal-part-used-price');
+            if (part.usedPrice && !isUsedMode) {
+                usedBadge.innerText = `중고 ₩ ${part.usedPrice.toLocaleString()}`;
+                usedBadge.classList.remove('hidden');
+            } else {
+                usedBadge.classList.add('hidden');
+            }
+
+            document.getElementById('modal-part-icon').innerHTML = `<i class="fa-solid ${part.icon || 'fa-microchip'}"></i>`;
+
+            let specsHtml = '';
+            for (const [key, value] of Object.entries(part)) {
+                if (['id', 'name', 'price', 'usedPrice', 'icon'].includes(key)) continue;
+                specsHtml += `
+                    <div class="flex justify-between border-b border-dark-700/50 pb-1">
+                        <span class="text-gray-400 capitalize">${key}</span>
+                        <span class="font-semibold text-white">${Array.isArray(value) ? value.join(', ') : value}</span>
+                    </div>
+                `;
+            }
+            document.getElementById('modal-part-specs').innerHTML = specsHtml;
+
+            const selectBtn = document.getElementById('modal-select-btn');
+            selectBtn.onclick = function() {
+                selectPart(catId, partId);
+                closeModal('detail-modal');
+            };
+
+            openModal('detail-modal');
+        }
+
+        function applyRecommendPreset(type) {
+            const presetMap = {
+                office: { cpu: 'cpu-l-athlon3000g', motherboard: 'mb-ddr3-2', ram: 'ram-ddr3-4', gpu: 'gpu-none', ssd: 'ssd-cheap-120', cooler: 'cooler-1', psu: 'psu-low-400', case: 'case-ultra-cheap' },
+                mid_online: { cpu: 'cpu-m3', motherboard: 'mb-5', ram: 'ram-ddr4-16', gpu: 'gpu-m0-4', ssd: 'ssd-2', cooler: 'cooler-2', psu: 'psu-1', case: 'case-1' },
+                gaming_1080p: { cpu: 'cpu-m5', motherboard: 'mb-2', ram: 'ram-2', gpu: 'gpu-m0-2', ssd: 'ssd-1', cooler: 'cooler-2', psu: 'psu-1', case: 'case-1' },
+                gaming_4k: { cpu: 'cpu-h3', motherboard: 'mb-2', ram: 'ram-2', gpu: 'gpu-h0-2', ssd: 'ssd-1', cooler: 'cooler-3', psu: 'psu-2', case: 'case-2' },
+                ultimate: { cpu: 'cpu-h3', motherboard: 'mb-3', ram: 'ram-ddr5-64', gpu: 'gpu-h1', ssd: 'ssd-3', cooler: 'cooler-4', psu: 'psu-4', case: 'case-3' }
+            };
+
+            const selected = presetMap[type];
+            if (!selected) return;
+
+            resetEstimate();
+            CATEGORIES.forEach(cat => {
+                if (selected[cat.id]) {
+                    const found = PARTS_DATABASE[cat.id]?.find(p => p.id === selected[cat.id]);
+                    if (found) selectedBuild[cat.id] = found;
+                }
+            });
+
+            closeModal('recommend-modal');
+            renderCategoryTabs();
+            renderPartsGrid();
+            renderSelectedSummary();
+            checkCompatibility();
+            showToast("추천 견적이 정상 적용되었습니다.");
+        }
+
+        // Auto-generate optimal build based on input budget
+        function autoBuildByBudget() {
+            const inputVal = parseInt(document.getElementById('budget-input').value) || 0;
+            if (inputVal <= 0) {
+                showToast("먼저 목표 예산을 입력해 주세요. (예: 1200000)");
+                return;
+            }
+
+            resetEstimate();
+
+            const getPartPrice = (p) => isUsedMode ? (p.usedPrice ?? p.price) : p.price;
+
+            // Pick Motherboard matching socket and RAM type
+            function pickCompatibleMB(cpuObj, ramObj) {
+                const mobos = PARTS_DATABASE.motherboard.filter(m => m.socket === cpuObj.socket);
+                if (ramObj) {
+                    const ramMatch = mobos.filter(m => m.ramType === ramObj.ramType);
+                    if (ramMatch.length > 0) mobos.length = 0, mobos.push(...ramMatch);
+                }
+                mobos.sort((a, b) => getPartPrice(a) - getPartPrice(b));
+                return mobos[0] || PARTS_DATABASE.motherboard[0];
+            }
+
+            // Target budget allocations
+            let targetGpuRatio = 0.40;
+            let targetCpuRatio = 0.25;
+
+            if (inputVal < 400000) {
+                // Ultra Low Budget: APU/Integrated GPU focus
+                targetGpuRatio = 0.0;
+                targetCpuRatio = 0.45;
+            } else if (inputVal < 800000) {
+                targetGpuRatio = 0.35;
+                targetCpuRatio = 0.30;
+            }
+
+            const availableGpus = [...PARTS_DATABASE.gpu].sort((a, b) => getPartPrice(a) - getPartPrice(b));
+            const availableCpus = [...PARTS_DATABASE.cpu].sort((a, b) => getPartPrice(a) - getPartPrice(b));
+
+            // Select GPU
+            let chosenGpu = availableGpus[0];
+            const maxGpuPrice = inputVal * (targetGpuRatio > 0 ? targetGpuRatio + 0.15 : 0.05);
+            for (let g of availableGpus) {
+                if (getPartPrice(g) <= maxGpuPrice) chosenGpu = g;
+            }
+
+            // Select CPU
+            let chosenCpu = availableCpus[0];
+            const maxCpuPrice = inputVal * (targetCpuRatio + 0.15);
+            for (let c of availableCpus) {
+                if (getPartPrice(c) <= maxCpuPrice) chosenCpu = c;
+            }
+
+            // Select RAM matching CPU/Mobo era
+            let ramCandidates = PARTS_DATABASE.ram.filter(r => r.ramType === (chosenCpu.socket === 'LGA1150' || chosenCpu.socket === 'AM3' ? 'DDR3' : (inputVal > 1500000 ? 'DDR5' : 'DDR4')));
+            if (ramCandidates.length === 0) ramCandidates = PARTS_DATABASE.ram;
+            ramCandidates.sort((a, b) => getPartPrice(a) - getPartPrice(b));
+            let chosenRam = ramCandidates[0];
+            if (inputVal > 700000 && ramCandidates.length > 1) chosenRam = ramCandidates[Math.floor(ramCandidates.length / 2)];
+
+            // Select Motherboard
+            const chosenMb = pickCompatibleMB(chosenCpu, chosenRam);
+
+            // Select SSD
+            const ssds = [...PARTS_DATABASE.ssd].filter(s => s.id !== 'ssd-none').sort((a, b) => getPartPrice(a) - getPartPrice(b));
+            let chosenSsd = ssds[0];
+            if (inputVal >= 1000000 && ssds.length > 2) chosenSsd = ssds[2];
+            else if (inputVal >= 600000 && ssds.length > 1) chosenSsd = ssds[1];
+
+            // Select Cooler
+            const coolers = [...PARTS_DATABASE.cooler].sort((a, b) => getPartPrice(a) - getPartPrice(b));
+            let chosenCooler = coolers[0];
+            if (chosenCpu.tdp > 100 || inputVal > 1200000) {
+                chosenCooler = coolers.find(c => c.tdpRating >= (chosenCpu.tdp || 100)) || coolers[coolers.length - 1];
+            }
+
+            // Select Power Supply
+            const estWatt = (chosenCpu.tdp || 65) + (chosenGpu.powerReq || 100) + 60;
+            const psus = [...PARTS_DATABASE.psu].filter(p => p.id !== 'psu-none' && p.wattage >= estWatt).sort((a, b) => getPartPrice(a) - getPartPrice(b));
+            let chosenPsu = psus[0] || PARTS_DATABASE.psu[1];
+
+            // Select Case
+            const cases = [...PARTS_DATABASE.case].filter(c => c.id !== 'case-none').sort((a, b) => getPartPrice(a) - getPartPrice(b));
+            let chosenCase = cases[0];
+            if (inputVal > 1000000 && cases.length > 2) chosenCase = cases[2];
+            else if (inputVal > 600000 && cases.length > 1) chosenCase = cases[1];
+
+            // Set Build
+            selectedBuild.cpu = chosenCpu;
+            selectedBuild.motherboard = chosenMb;
+            selectedBuild.ram = chosenRam;
+            selectedBuild.gpu = chosenGpu;
+            selectedBuild.ssd = chosenSsd;
+            selectedBuild.cooler = chosenCooler;
+            selectedBuild.psu = chosenPsu;
+            selectedBuild.case = chosenCase;
+
+            renderCategoryTabs();
+            renderPartsGrid();
+            renderSelectedSummary();
+            checkCompatibility();
+
+            const modeText = isUsedMode ? "중고가 시세" : "신품 정가";
+            showToast(`입력하신 예산 ₩${inputVal.toLocaleString()} (${modeText})에 맞춰 최적 부품을 조합했습니다!`);
+        }
+
+        function copyEstimateText() {
+            const text = generateEstimateText();
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast("견적 내역이 클립보드에 복사되었습니다!");
+        }
+
+        function downloadEstimateTxt() {
+            const text = generateEstimateText();
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `PC_Builder_Estimate_${new Date().toISOString().slice(0,10)}.txt`;
+            link.click();
+            showToast("견적 파일 다운로드가 시작되었습니다.");
+        }
+
+        function generateEstimateText() {
+            let total = 0;
+            let text = `======================================\n`;
+            text += `         PC BUILDER PRO 견적서        \n`;
+            text += `======================================\n`;
+            text += `모드: ${isUsedMode ? '중고가 모드 적용' : '신품가 모드'}\n`;
+            text += `작성일: ${new Date().toLocaleDateString()}\n--------------------------------------\n`;
+
+            CATEGORIES.forEach(cat => {
+                const part = selectedBuild[cat.id];
+                if (part) {
+                    const price = isUsedMode ? (part.usedPrice ?? part.price) : part.price;
+                    total += price;
+                    text += `[${cat.name}] ${part.name} - ₩${price.toLocaleString()}\n`;
+                } else {
+                    text += `[${cat.name}] 미선택\n`;
+                }
+            });
+
+            text += `--------------------------------------\n`;
+            text += `총 견적 금액: ₩${total.toLocaleString()}\n`;
+            text += `CPU PassMark 연산지수: ${selectedBuild.cpu ? selectedBuild.cpu.cpuScore : 0} Pts\n`;
+            text += `GPU 3DMark 타임스파이: ${selectedBuild.gpu ? selectedBuild.gpu.gpuScore : 0} Pts\n`;
+            text += `======================================\n`;
+            return text;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast-msg');
+            document.getElementById('toast-text').innerText = msg;
+            toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
